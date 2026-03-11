@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id              Int         @id @default(autoincrement())
+  name            String      @db.VarChar(100)
+  color           String      @unique @db.VarChar(50)
+  price           Decimal     @db.Decimal(10, 2)
+  hasPairDiscount Boolean     @default(false) @map("has_pair_discount")
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @default(now()) @updatedAt @map("updated_at")
+  orderItems      OrderItem[]
+
+  @@map("products")
+}
+
+model Order {
+  id                   Int            @id @default(autoincrement())
+  memberCardNumber     String?        @map("member_card_number") @db.VarChar(50)
+  totalBeforeDiscount  Decimal        @map("total_before_discount") @db.Decimal(10, 2)
+  pairDiscount         Decimal        @default(0) @map("pair_discount") @db.Decimal(10, 2)
+  memberDiscount       Decimal        @default(0) @map("member_discount") @db.Decimal(10, 2)
+  finalTotal           Decimal        @map("final_total") @db.Decimal(10, 2)
+  createdAt            DateTime       @default(now()) @map("created_at")
+  orderItems           OrderItem[]
+  redSetOrders         RedSetOrder[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   Int     @map("order_id")
+  productId Int     @map("product_id")
+  quantity  Int
+  unitPrice Decimal @map("unit_price") @db.Decimal(10, 2)
+  subtotal  Decimal @db.Decimal(10, 2)
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
+
+model RedSetOrder {
+  id        Int      @id @default(autoincrement())
+  orderId   Int      @map("order_id")
+  orderedAt DateTime @default(now()) @map("ordered_at")
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("red_set_orders")
+}
