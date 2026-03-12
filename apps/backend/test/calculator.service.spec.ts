@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { CalculatorService } from '../src/application/calculator/calculator.service';
+import { CalculatorService } from '../src/application/calculator/service/calculator.service';
 import { Product } from '../src/domain/products/product.entity';
 import { Decimal } from '@prisma/client/runtime/library';
 
@@ -26,6 +26,7 @@ describe('CalculatorService', () => {
         name: 'Red Set',
         color: 'red',
         price: new Decimal(50),
+        currencyId: 1, // THB currency
         hasPairDiscount: false,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -49,6 +50,7 @@ describe('CalculatorService', () => {
         name: 'Orange Set',
         color: 'orange',
         price: new Decimal(120),
+        currencyId: 1, // THB currency
         hasPairDiscount: true,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -71,6 +73,7 @@ describe('CalculatorService', () => {
         name: 'Pink Set',
         color: 'pink',
         price: new Decimal(80),
+        currencyId: 1, // THB currency
         hasPairDiscount: true,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -93,6 +96,7 @@ describe('CalculatorService', () => {
         name: 'Green Set',
         color: 'green',
         price: new Decimal(40),
+        currencyId: 1, // THB currency
         hasPairDiscount: true,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -116,6 +120,7 @@ describe('CalculatorService', () => {
         name: 'Red Set',
         color: 'red',
         price: new Decimal(50),
+        currencyId: 1, // THB currency
         hasPairDiscount: false,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -140,6 +145,7 @@ describe('CalculatorService', () => {
         name: 'Orange Set',
         color: 'orange',
         price: new Decimal(120),
+        currencyId: 1, // THB currency
         hasPairDiscount: true,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -166,6 +172,7 @@ describe('CalculatorService', () => {
         name: 'Orange Set',
         color: 'orange',
         price: new Decimal(120),
+        currencyId: 1, // THB currency
         hasPairDiscount: true,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -176,6 +183,7 @@ describe('CalculatorService', () => {
         name: 'Red Set',
         color: 'red',
         price: new Decimal(50),
+        currencyId: 1, // THB currency
         hasPairDiscount: false,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -186,6 +194,7 @@ describe('CalculatorService', () => {
         name: 'Green Set',
         color: 'green',
         price: new Decimal(40),
+        currencyId: 1, // THB currency
         hasPairDiscount: true,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -232,6 +241,7 @@ describe('CalculatorService', () => {
         name: 'Pink Set',
         color: 'pink',
         price: new Decimal(80),
+        currencyId: 1, // THB currency
         hasPairDiscount: true,
         createdAt: new Date(),
         updatedAt: new Date(),

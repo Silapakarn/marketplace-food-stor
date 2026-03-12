@@ -1,10 +1,5 @@
 import { IDiscountStrategy, OrderItemInput, DiscountResult } from './discount-strategy.interface';
 
-
-/**
- * Domain Service: Pair Discount Strategy
- * Business Rule: Orange, Pink, and Green sets get 5% discount per pair
- */
 export class PairDiscountStrategy implements IDiscountStrategy {
   private readonly PAIR_DISCOUNT_RATE = 0.05;
 
@@ -12,32 +7,62 @@ export class PairDiscountStrategy implements IDiscountStrategy {
     const itemsWithDiscount: DiscountResult['itemsWithDiscount'] = [];
     let totalDiscount = 0;
 
+    // Single pass through items - O(n)
     for (const item of items) {
-      if (item.product.canHavePairDiscount()) {
-        const pairs = Math.floor(item.quantity / 2);
-        const remaining = item.quantity % 2;
+      const itemResult = item.product.canHavePairDiscount()
+        ? this.calculatePairDiscountForItem(item)
+        : this.calculateNoDiscount(item);
 
-        if (pairs > 0) {
-          // Calculate discount for pairs
-          const pairPrice = item.product.getPriceAsNumber() * 2;
-          const discountPerPair = pairPrice * this.PAIR_DISCOUNT_RATE;
-          const totalPairDiscount = discountPerPair * pairs;
-
-          itemsWithDiscount.push({
-            productName: item.product.name,
-            originalPrice: pairPrice * pairs,
-            discountAmount: totalPairDiscount,
-            finalPrice: (pairPrice * pairs) - totalPairDiscount,
-          });
-
-          totalDiscount += totalPairDiscount;
-        }
-      }
+      itemsWithDiscount.push(itemResult);
+      totalDiscount += itemResult.discountAmount;
     }
 
     return {
       itemsWithDiscount,
-      totalDiscount,
+      totalDiscount: this.roundToTwo(totalDiscount),
     };
+  }
+
+  private calculatePairDiscountForItem(item: OrderItemInput) {
+    const pairs = Math.floor(item.quantity / 2);
+    const unitPrice = item.product.getPriceAsNumber();
+
+    if (pairs === 0) {
+      return this.calculateNoDiscount(item);
+    }
+
+    const remaining = item.quantity % 2;
+    
+    // Calculate once, use multiple times
+    const pairPrice = unitPrice * 2;
+    const discountPerPair = pairPrice * this.PAIR_DISCOUNT_RATE;
+    const totalPairDiscount = discountPerPair * pairs;
+    const priceAfterPairDiscount = (pairPrice - discountPerPair) * pairs;
+    const remainingPrice = remaining * unitPrice;
+    
+    const totalOriginalPrice = pairPrice * pairs + remainingPrice;
+    const totalFinalPrice = priceAfterPairDiscount + remainingPrice;
+
+    return {
+      productName: item.product.name,
+      originalPrice: this.roundToTwo(totalOriginalPrice),
+      discountAmount: this.roundToTwo(totalPairDiscount),
+      finalPrice: this.roundToTwo(totalFinalPrice),
+    };
+  }
+
+  private calculateNoDiscount(item: OrderItemInput) {
+    const totalPrice = item.product.getPriceAsNumber() * item.quantity;
+    
+    return {
+      productName: item.product.name,
+      originalPrice: this.roundToTwo(totalPrice),
+      discountAmount: 0,
+      finalPrice: this.roundToTwo(totalPrice),
+    };
+  }
+
+  private roundToTwo(value: number): number {
+    return Math.round(value * 100) / 100;
   }
 }

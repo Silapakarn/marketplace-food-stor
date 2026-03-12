@@ -21,20 +21,19 @@ export class Order {
   ) {}
 
   getTotalBeforeDiscountAsNumber(): number {
-    return this.totalBeforeDiscount.toNumber();
+    return Math.round(this.totalBeforeDiscount.toNumber() * 100) / 100;
   }
 
   getPairDiscountAsNumber(): number {
-    r
-    eturn this.pairDiscount.toNumber();
+    return Math.round(this.pairDiscount.toNumber() * 100) / 100;
   }
 
   getMemberDiscountAsNumber(): number {
-    return this.memberDiscount.toNumber();
+    return Math.round(this.memberDiscount.toNumber() * 100) / 100;
   }
 
   getFinalTotalAsNumber(): number {
-    return this.finalTotal.toNumber();
+    return Math.round(this.finalTotal.toNumber() * 100) / 100;
   }
 
   hasMemberCard(): boolean {

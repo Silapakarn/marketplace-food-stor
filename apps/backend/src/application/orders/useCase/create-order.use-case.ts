@@ -1,8 +1,8 @@
 import { Injectable, BadRequestException, Inject } from '@nestjs/common';
-import { IOrderRepository } from '../../domain/orders/order.repository.interface';
-import { IProductRepository } from '../../domain/products/product.repository.interface';
-import { CalculatorService } from '../calculator/calculator.service';
-import { Order } from '../../domain/orders/order.entity';
+import { IOrderRepository } from '../../../domain/orders/order.repository.interface';
+import { IProductRepository } from '../../../domain/products/product.repository.interface';
+import { CalculatorService } from '../../calculator/service/calculator.service';
+import { Order } from '../../../domain/orders/order.entity';
 import Redis from 'ioredis';
 
 export interface CreateOrderInput {
@@ -20,14 +20,13 @@ export interface CreateOrderInput {
 @Injectable()
 export class CreateOrderUseCase {
   constructor(
-    private readonly orderRepository: IOrderRepository,
-    private readonly productRepository: IProductRepository,
+    @Inject('ORDER_REPOSITORY') private readonly orderRepository: IOrderRepository,
+    @Inject('PRODUCT_REPOSITORY') private readonly productRepository: IProductRepository,
     private readonly calculatorService: CalculatorService,
     @Inject('REDIS_CLIENT') private readonly redisClient: Redis,
   ) {}
 
   async execute(input: CreateOrderInput): Promise<Order> {
-    // Validate and fetch products
     const itemsWithProducts = await Promise.all(
       input.items.map(async (item) => {
         const product = await this.productRepository.findById(item.productId);
@@ -64,7 +63,6 @@ export class CreateOrderUseCase {
 
     // Track Red Set order in Redis if applicable
     await this.trackRedSetOrder(itemsWithProducts, order.id);
-
     return order;
   }
 

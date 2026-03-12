@@ -5,7 +5,6 @@ export interface OrderItemInput {
   quantity: number;
 }
 
-
 export interface DiscountResult {
   itemsWithDiscount: Array<{
     productName: string;

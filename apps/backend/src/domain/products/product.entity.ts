@@ -5,14 +5,16 @@ export class Product {
     public readonly id: number,
     public readonly name: string,
     public readonly color: string,
-    public readonly price: Decimal,
+    private readonly price: Decimal,
+    public readonly imageUrl: string | null,
+    public readonly currencyId: number,
     public readonly hasPairDiscount: boolean,
     public readonly createdAt: Date,
     public readonly updatedAt: Date,
   ) {}
 
   getPriceAsNumber(): number {
-    return this.price.toNumber();
+    return Math.round(this.price.toNumber() * 100) / 100;
   }
 
   canHavePairDiscount(): boolean {
@@ -28,6 +30,8 @@ export class Product {
     name: string;
     color: string;
     price: Decimal;
+    imageUrl?: string | null;
+    currencyId: number;
     hasPairDiscount: boolean;
     createdAt: Date;
     updatedAt: Date;
@@ -37,6 +41,8 @@ export class Product {
       data.name,
       data.color,
       data.price,
+      data.imageUrl || null,
+      data.currencyId,
       data.hasPairDiscount,
       data.createdAt,
       data.updatedAt,

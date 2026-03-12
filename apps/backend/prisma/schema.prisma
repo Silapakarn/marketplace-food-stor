@@ -12,9 +12,12 @@ model Product {
   name            String      @db.VarChar(100)
   color           String      @unique @db.VarChar(50)
   price           Decimal     @db.Decimal(10, 2)
+  imageUrl        String?     @map("image_url") @db.VarChar(255)
+  currencyId      Int         @map("currency_id")
   hasPairDiscount Boolean     @default(false) @map("has_pair_discount")
   createdAt       DateTime    @default(now()) @map("created_at")
   updatedAt       DateTime    @default(now()) @updatedAt @map("updated_at")
+  currency        Currency    @relation(fields: [currencyId], references: [id])
   orderItems      OrderItem[]
 
   @@map("products")
@@ -54,4 +57,19 @@ model RedSetOrder {
   order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@map("red_set_orders")
+}
+
+model Currency {
+  id           Int       @id @default(autoincrement())
+  code         String    @unique @db.VarChar(3) // THB, USD, etc.
+  name         String    @db.VarChar(50) // Thai Baht, US Dollar, etc.
+  symbol       String    @db.VarChar(10) // ฿, $, etc.
+  exchangeRate Decimal   @db.Decimal(10, 4) // Exchange rate to base currency
+  isActive     Boolean   @default(true) @map("is_active")
+  isDefault    Boolean   @default(false) @map("is_default")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @default(now()) @updatedAt @map("updated_at")
+  products     Product[] // One-to-many relationship
+
+  @@map("currencies")
 }

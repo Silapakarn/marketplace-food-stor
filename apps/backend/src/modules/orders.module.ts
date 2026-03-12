@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
 import { OrdersController } from '../presentation/controllers/orders.controller';
-import { CreateOrderUseCase } from '../application/orders/create-order.use-case';
-import { CalculatorService } from '../application/calculator/calculator.service';
+import { OrderService } from '../application/orders/service/order.service';
+import { CreateOrderUseCase } from '../application/orders/useCase/create-order.use-case';
+import { CalculatorService } from '../application/calculator/service/calculator.service';
+import { InventoryLockService } from '../application/orders/service/inventory-lock.service';
 import { OrderRepository } from '../infrastructure/database/order.repository';
-import { IOrderRepository } from '../domain/orders/order.repository.interface';
 import { ProductsModule } from './products.module';
 
 /**
@@ -14,10 +15,12 @@ import { ProductsModule } from './products.module';
   imports: [ProductsModule],
   controllers: [OrdersController],
   providers: [
+    OrderService,
     CreateOrderUseCase,
     CalculatorService,
+    InventoryLockService,
     {
-      provide: IOrderRepository,
+      provide: 'ORDER_REPOSITORY',
       useClass: OrderRepository,
     },
   ],
