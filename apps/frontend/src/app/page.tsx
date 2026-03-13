@@ -1,140 +1,145 @@
-/**
- * UI Layer - Main Calculator Page
- * Orchestrates all feature modules (Product, Cart, Order)
- * Following DDD Architecture: UI → Application → Domain → Infrastructure
- */
-
 'use client';
 
-import React from 'react';
-import { Layout, Row, Col, message } from 'antd';
-import { ShoppingCartOutlined } from '@ant-design/icons';
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Layout, Typography, Badge, Button, Space, Input } from 'antd';
+import { ShoppingCartOutlined, ShopOutlined, SearchOutlined, MenuOutlined, UserOutlined } from '@ant-design/icons';
+import { ProductList } from '@/modules/product/components/ProductList';
+import { CartDrawer } from '@/modules/cart/components/CartDrawer';
+import { useCart } from '@/modules/cart/context/CartContext';
 
-// Product Module
-import { ProductList, useProducts } from '@/modules/product';
+const { Header, Content } = Layout;
+const { Title, Text } = Typography;
 
-// Cart Module
-import { MemberCardInput, useCart } from '@/modules/cart';
+export default function HomePage() {
+  const router = useRouter();
+  const { totalItems } = useCart();
+  const [cartDrawerOpen, setCartDrawerOpen] = useState(false);
 
-// Order Module
-import { OrderSummary, useOrder } from '@/modules/order';
-
-// Shared Components
-import { ActionButtons } from '@/shared/components';
-
-const { Header, Content, Footer } = Layout;
-
-export default function Home() {
-  // Product Layer - Fetch and manage products
-  const { products, loading } = useProducts();
-
-  // Cart Layer - Manage shopping cart state
-  const { 
-    items, 
-    memberCardNumber, 
-    totalItems,
-    addItem, 
-    removeItem, 
-    setMemberCardNumber, 
-    clearCart, 
-    getQuantity 
-  } = useCart();
-
-  // Order Layer - Handle order creation and calculation
-  const { calculating, calculation, createOrder, clearCalculation } = useOrder();
-
-  /**
-   * Application Logic - Handle Calculate Order
-   */
-  const handleCalculate = async () => {
-    if (items.length === 0) {
-      message.warning('Please add items to your cart');
-      return;
-    }
-
-    const orderData = {
-      items: items.map((item) => ({
-        productId: item.product.id,
-        quantity: item.quantity,
-      })),
-      memberCardNumber: memberCardNumber || undefined,
-    };
-
-    await createOrder(orderData);
+  const handleBuyNow = () => {
+    router.push('/order');
   };
 
-  /**
-   * Application Logic - Handle Clear Cart
-   */
-  const handleReset = () => {
-    clearCart();
-    clearCalculation();
-    message.info('Cart cleared');
+  const handleCheckout = () => {
+    setCartDrawerOpen(false);
+    router.push('/order');
   };
 
   return (
-    <Layout className="min-h-screen">
-      {/* Header */}
-      <Header className="bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg">
-        <div className="container mx-auto flex items-center justify-between">
-          <h1 className="text-white text-2xl font-bold flex items-center">
-            <ShoppingCartOutlined className="mr-2" />
-            Food Store Calculator
-          </h1>
-          <div className="text-white text-lg">
-            {totalItems} {totalItems === 1 ? 'item' : 'items'}
-          </div>
+    <Layout style={{ minHeight: '100vh', background: 'linear-gradient(to bottom, #ffffff 0%, #f0fdfa 100%)' }}>
+      {/* Header - Gromuse Style */}
+      <Header
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 100,
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 32px',
+          background: 'linear-gradient(135deg, #115e59 0%, #0d9488 50%, #14b8a6 100%)',
+          boxShadow: '0 4px 12px rgba(13, 148, 136, 0.2)',
+          height: '80px',
+        }}
+      >
+        {/* Left: Menu + Logo */}
+        <Space align="center" size="large">
+          <Button 
+            type="text" 
+            icon={<MenuOutlined style={{ fontSize: '24px', color: 'white' }} />}
+            style={{ border: 'none' }}
+          />
+          <Space align="center" size="middle">
+            <div style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '50%',
+              background: 'white',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+            }}>
+              <ShopOutlined style={{ fontSize: '24px', color: '#0d9488' }} />
+            </div>
+            <Title level={3} style={{ color: 'white', margin: 0, fontWeight: 700 }}>
+              Food Store
+            </Title>
+          </Space>
+        </Space>
+
+        {/* Center: Search Bar */}
+        <div style={{ flex: 1, maxWidth: '600px', margin: '0 32px' }}>
+          <Input
+            size="large"
+            placeholder="Search for Grocery, Stores, Vegetable or Meat"
+            prefix={<SearchOutlined style={{ color: '#9ca3af', fontSize: '18px' }} />}
+            style={{
+              borderRadius: '12px',
+              border: 'none',
+              height: '50px',
+              background: 'white',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            }}
+          />
         </div>
+
+        {/* Right: Delivery Notice + Cart + User */}
+        <Space align="center" size="large">
+          <div style={{ color: 'white', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '20px' }}>⚡</span>
+            <Text style={{ color: 'white', fontSize: '14px' }}>
+              <Text strong style={{ color: '#fbbf24' }}>Order now</Text> and get it within <Text strong style={{ color: '#fbbf24' }}>15 min!</Text>
+            </Text>
+          </div>
+          
+          <Badge count={totalItems} offset={[-5, 5]} overflowCount={99}>
+            <Button
+              type="text"
+              shape="circle"
+              size="large"
+              icon={<ShoppingCartOutlined style={{ fontSize: '24px', color: '#0d9488' }} />}
+              onClick={() => setCartDrawerOpen(true)}
+              style={{
+                width: '56px',
+                height: '56px',
+                background: 'white',
+                border: 'none',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              }}
+            />
+          </Badge>
+
+          <div style={{
+            width: '48px',
+            height: '48px',
+            borderRadius: '50%',
+            background: 'white',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+          }}>
+            <UserOutlined style={{ fontSize: '20px', color: '#0d9488' }} />
+          </div>
+        </Space>
       </Header>
 
       {/* Main Content */}
-      <Content className="container mx-auto px-4 py-8">
-        <Row gutter={[24, 24]}>
-          {/* Products Section - Left Side */}
-          <Col xs={24} lg={16}>
-            <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-              <h2 className="text-2xl font-bold mb-4 text-gray-800">Menu</h2>
-              <ProductList
-                products={products}
-                loading={loading}
-                getQuantity={getQuantity}
-                onAdd={addItem}
-                onRemove={removeItem}
-              />
-            </div>
-          </Col>
-
-          {/* Cart & Summary Section - Right Side */}
-          <Col xs={24} lg={8}>
-            <div className="sticky top-4 space-y-6">
-              {/* Member Card Input */}
-              <MemberCardInput
-                value={memberCardNumber}
-                onChange={setMemberCardNumber}
-              />
-
-              {/* Action Buttons */}
-              <ActionButtons
-                onCalculate={handleCalculate}
-                onClear={handleReset}
-                calculating={calculating}
-                disabled={items.length === 0 && !calculation}
-              />
-
-              {/* Calculation Summary */}
-              {calculation && <OrderSummary calculation={calculation} />}
-            </div>
-          </Col>
-        </Row>
+      <Content style={{ padding: '40px 32px' }}>
+        <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+          <ProductList onBuyNow={handleBuyNow} />
+        </div>
       </Content>
 
-      {/* Footer */}
-      <Footer className="text-center bg-gray-800 text-white">
-        <p>Food Store Calculator © 2026 | Built with Next.js, NestJS & PostgreSQL</p>
-        <p className="text-sm text-gray-400 mt-2">
-          Domain-Driven Design Architecture
-        </p>
-      </Footer>
+      {/* Cart Drawer */}
+      <CartDrawer
+        isOpen={cartDrawerOpen}
+        onClose={() => setCartDrawerOpen(false)}
+        onCheckout={handleCheckout}
+      />
     </Layout>
   );
 }

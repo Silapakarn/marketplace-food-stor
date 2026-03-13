@@ -1,76 +1,241 @@
-/**
- * UI Layer - Product Card Component
- * Displays individual product with quantity controls
- */
-
 'use client';
 
+import React, { useState } from 'react';
+import { Card, Button, Tag, Typography, Image } from 'antd';
+import { PlusOutlined, MinusOutlined, ShoppingCartOutlined } from '@ant-design/icons';
+import { useCart } from '@/modules/cart/context/CartContext';
+import { formatCurrency, isRedSet } from '@/shared/utils';
+import type { Product } from '@/shared/types';
 
-import React from 'react';
-import { Card, Button, Tag } from 'antd';
-import { PlusOutlined, MinusOutlined } from '@ant-design/icons';
-import { Product, PRODUCT_COLORS } from '../types/product';
+const { Text } = Typography;
 
 interface ProductCardProps {
   product: Product;
-  quantity: number;
-  onAdd: () => void;
-  onRemove: () => void;
+  onBuyNow?: (product: Product) => void;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({
-  product,
-  quantity,
-  onAdd,
-  onRemove,
-}) => {
-  const bgColor = PRODUCT_COLORS[product.color.toLowerCase()] || '#d9d9d9';
+export const ProductCard: React.FC<ProductCardProps> = ({ product, onBuyNow }) => {
+  const { addItem, updateQuantity, getItemQuantity } = useCart();
+  const quantity = getItemQuantity(product.id);
+  const [isHovered, setIsHovered] = useState(false);
+
+  const handleIncrement = () => {
+    if (quantity === 0) {
+      addItem(product, 1);
+    } else {
+      updateQuantity(product.id, quantity + 1);
+    }
+  };
+
+  const handleDecrement = () => {
+    if (quantity > 0) {
+      updateQuantity(product.id, quantity - 1);
+    }
+  };
+
+  const handleAddToCart = () => {
+    if (quantity === 0) {
+      addItem(product, 1);
+    }
+  };
 
   return (
     <Card
-      className="shadow-lg hover:shadow-xl transition-shadow duration-300"
-      style={{ borderTop: `4px solid ${bgColor}` }}
-    >
-      <div className="flex flex-col h-full">
-        <div className="mb-4">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-lg font-bold text-gray-800">{product.name}</h3>
+      hoverable
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className="product-card-hover"
+      style={{
+        borderRadius: '20px',
+        overflow: 'hidden',
+        border: '1px solid #e0f2f1',
+        background: 'white',
+        boxShadow: isHovered 
+          ? '0 20px 40px rgba(13, 148, 136, 0.15)' 
+          : '0 4px 12px rgba(0, 0, 0, 0.06)',
+      }}
+      bodyStyle={{ padding: '20px' }}
+      cover={
+        <div style={{ 
+          position: 'relative', 
+          background: 'linear-gradient(to bottom, #f0fdfa, #ffffff)',
+          padding: '20px',
+          height: '280px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          <div style={{
+            width: '100%',
+            height: '200px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '80px',
+          }}>
+            🍽️
+          </div>
+
+          {/* Badges */}
+          <div style={{ position: 'absolute', top: '12px', left: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {product.hasPairDiscount && (
-              <Tag color="green" className="text-xs">
-                5% Pair Discount
+              <Tag 
+                color="success"
+                style={{ 
+                  borderRadius: '20px', 
+                  padding: '6px 14px',
+                  fontWeight: 600,
+                  fontSize: '12px',
+                  border: 'none',
+                  background: 'linear-gradient(135deg, #14b8a6, #0d9488)',
+                  color: 'white',
+                  boxShadow: '0 2px 8px rgba(13, 148, 136, 0.3)',
+                }}
+              >
+                🎁 5% discount for pair
+              </Tag>
+            )}
+            {isRedSet(product) && (
+              <Tag 
+                style={{ 
+                  borderRadius: '20px', 
+                  padding: '6px 14px',
+                  fontWeight: 600,
+                  fontSize: '12px',
+                  border: 'none',
+                  background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
+                  color: '#7c2d12',
+                  boxShadow: '0 2px 8px rgba(251, 191, 36, 0.4)',
+                }}
+              >
+                ⚡ Limited
               </Tag>
             )}
           </div>
-          <div
-            className="w-full h-24 rounded-md mb-3 flex items-center justify-center text-white font-bold text-2xl"
-            style={{ backgroundColor: bgColor }}
-          >
-            {product.color.toUpperCase()}
-          </div>
-          <p className="text-2xl font-bold text-gray-900">
-            ฿{product.price.toFixed(2)}
-          </p>
-        </div>
 
-        <div className="flex items-center justify-between mt-auto">
+          {quantity > 0 && (
+            <div style={{
+              position: 'absolute',
+              top: '12px',
+              right: '12px',
+              background: '#f97316',
+              color: 'white',
+              borderRadius: '50%',
+              width: '32px',
+              height: '32px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontWeight: 'bold',
+              fontSize: '14px',
+              boxShadow: '0 4px 12px rgba(249, 115, 22, 0.4)',
+            }}>
+              {quantity}
+            </div>
+          )}
+        </div>
+      }
+    >
+      {/* Product Name & Category */}
+      <div style={{ marginBottom: '12px', textAlign: 'center' }}>
+        <Text strong style={{ fontSize: '18px', color: '#115e59', display: 'block', marginBottom: '4px' }}>
+          {product.name}
+        </Text>
+        <Text type="secondary" style={{ fontSize: '13px', color: '#6b7280' }}>
+          (Local shop)
+        </Text>
+      </div>
+
+      {/* Price */}
+      <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+        <Text strong style={{ 
+          fontSize: '32px', 
+          color: '#0f172a',
+          fontWeight: 700,
+          letterSpacing: '-0.5px',
+        }}>
+          {formatCurrency(product.price).replace('THB', '').trim()}
+        </Text>
+        <Text type="secondary" style={{ fontSize: '18px', color: '#64748b', marginLeft: '2px' }}>
+          $
+        </Text>
+      </div>
+
+      {/* Quantity Controls or Add Button */}
+      {quantity > 0 ? (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            background: 'linear-gradient(135deg, #d1fae5, #a7f3d0)',
+            borderRadius: '16px',
+            padding: '8px 16px',
+            height: '56px',
+          }}
+        >
           <Button
-            type="default"
+            type="text"
             shape="circle"
-            icon={<MinusOutlined />}
-            onClick={onRemove}
-            disabled={quantity === 0}
-            className="hover:bg-red-50"
+            size="large"
+            icon={<MinusOutlined style={{ fontSize: '18px', color: '#115e59', fontWeight: 'bold' }} />}
+            onClick={handleDecrement}
+            style={{
+              width: '40px',
+              height: '40px',
+              border: '2px solid #115e59',
+              background: 'transparent',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            className="quantity-btn"
           />
-          <span className="text-xl font-semibold px-4">{quantity}</span>
+          
+          <Text strong style={{ fontSize: '24px', color: '#115e59', minWidth: '40px', textAlign: 'center' }}>
+            {quantity}
+          </Text>
+          
           <Button
-            type="primary"
+            type="text"
             shape="circle"
-            icon={<PlusOutlined />}
-            onClick={onAdd}
-            className="bg-blue-500 hover:bg-blue-600"
+            size="large"
+            icon={<PlusOutlined style={{ fontSize: '18px', color: '#115e59', fontWeight: 'bold' }} />}
+            onClick={handleIncrement}
+            style={{
+              width: '40px',
+              height: '40px',
+              border: '2px solid #115e59',
+              background: 'transparent',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            className="quantity-btn"
           />
         </div>
-      </div>
+      ) : (
+        <Button
+          type="text"
+          size="large"
+          block
+          icon={<PlusOutlined style={{ fontSize: '20px', fontWeight: 'bold' }} />}
+          onClick={handleAddToCart}
+          style={{
+            height: '56px',
+            borderRadius: '16px',
+            background: '#f3f4f6',
+            border: 'none',
+            color: '#6b7280',
+            fontSize: '18px',
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+          className="quantity-btn"
+        />
+      )}
     </Card>
   );
 };

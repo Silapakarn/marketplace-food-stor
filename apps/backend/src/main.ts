@@ -22,7 +22,8 @@ async function bootstrap() {
     }),
   );
 
-  const port = process.env.PORT || 3001;
+  // Force port 3001 for backend
+  const port = 3001;
   await app.listen(port);
   
   console.log(`🚀 Application is running on: http://localhost:${port}`);

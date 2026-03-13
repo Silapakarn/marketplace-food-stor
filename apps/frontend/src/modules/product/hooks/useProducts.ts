@@ -1,39 +1,10 @@
-/**
- * Application Layer - Product Hooks
- * Business logic for product operations
- */
- 
+'use client';
 
-import { useEffect } from 'react';
-import { message } from 'antd';
-import { useProductStore } from '../store/productStore';
-import { productApi } from '../services/productApi';
+import { useQuery } from '@tanstack/react-query';
+import { apiClient } from '@/shared/services/api-client';
 
-export const useProducts = () => {
-  const { products, loading, error, setProducts, setLoading, setError } = useProductStore();
-
-  const fetchProducts = async () => {
-    try {
-      setLoading(true);
-      const data = await productApi.getAll();
-      setProducts(data);
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Failed to load products';
-      setError(errorMessage);
-      message.error(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  return {
-    products,
-    loading,
-    error,
-    refetch: fetchProducts,
-  };
-};
+export const useProducts = () =>
+  useQuery({
+    queryKey: ['products'],
+    queryFn: () => apiClient.getProducts(),
+  });

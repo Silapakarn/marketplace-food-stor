@@ -1,12 +1,14 @@
 import type { Metadata } from 'next';
-import { AntdRegistry } from '@ant-design/nextjs-registry';
-import { ConfigProvider } from 'antd';
 import './globals.css';
+import { CartProvider } from "@/modules/cart/context/CartContext";
+import { Providers } from './providers';
+import { Inter } from "next/font/google";
 
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'Food Store Calculator',
-  description: 'Calculator application for food store with discount management',
+  title: 'Food Store - Order Your Favorite Sets',
+  description: 'Order delicious food sets with special discounts',
 };
 
 export default function RootLayout({
@@ -16,19 +18,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
-        <AntdRegistry>
-          <ConfigProvider
-            theme={{
-              token: {
-                colorPrimary: '#3b82f6',
-                borderRadius: 8,
-              },
-            }}
-          >
+      <body className={inter.className}>
+        <Providers>
+          <CartProvider>
             {children}
-          </ConfigProvider>
-        </AntdRegistry>
+          </CartProvider>
+        </Providers>
       </body>
     </html>
   );

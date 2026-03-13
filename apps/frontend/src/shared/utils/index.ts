@@ -1,0 +1,47 @@
+import { CURRENCY_SYMBOL } from '../constants';
+import type { Product } from '../types';
+
+export const formatCurrency = (amount: number, currency: string = CURRENCY_SYMBOL): string => {
+  const hasDecimals = amount % 1 !== 0;
+  return `${currency}${hasDecimals ? amount.toFixed(2) : amount}`;
+};
+
+export const getProductColorClass = (color: string): string => {
+  const colorMap: Record<string, string> = {
+    red: 'bg-red-500',
+    green: 'bg-green-500',
+    blue: 'bg-blue-500',
+    yellow: 'bg-yellow-400',
+    pink: 'bg-pink-500',
+    purple: 'bg-purple-500',
+    orange: 'bg-orange-500',
+  };
+  return colorMap[color.toLowerCase()] || 'bg-gray-500';
+};
+
+export const getProductColorBorder = (color: string): string => {
+  const colorMap: Record<string, string> = {
+    red: 'border-red-400',
+    green: 'border-green-400',
+    blue: 'border-blue-400',
+    yellow: 'border-yellow-400',
+    pink: 'border-pink-400',
+    purple: 'border-purple-400',
+    orange: 'border-orange-400',
+  };
+  return colorMap[color.toLowerCase()] || 'border-gray-300';
+};
+
+export const isRedSet = (product: Product | { color: string }): boolean =>
+  product.color.toLowerCase() === 'red';
+
+export const formatDateTime = (date: string | Date): string =>
+  new Intl.DateTimeFormat('th-TH', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(date));
+
+export const getRemainingTime = (expiresAt: string): string => {
+  const diff = new Date(expiresAt).getTime() - Date.now();
+  if (diff <= 0) return 'Expired';
+  const minutes = Math.ceil(diff / 60000);
+  const hours = Math.floor(minutes / 60);
+  return hours > 0 ? `${hours}h ${minutes % 60}m` : `${minutes}m`;
+};

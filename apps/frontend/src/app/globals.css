@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --primary-green: #0d9488;
+  --dark-green: #115e59;
+  --light-green: #14b8a6;
+  --bg-green: #f0fdfa;
+  --accent-orange: #f97316;
+}
+
 * {
   box-sizing: border-box;
   padding: 0;
@@ -15,13 +23,73 @@ body {
 }
 
 body {
-  background-color: #f5f5f5;
+  background: linear-gradient(to bottom, #ffffff 0%, #f0fdfa 100%);
+  min-height: 100vh;
 }
 
+/* Product Card Animations */
+.product-card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.product-card-hover:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(13, 148, 136, 0.15);
+}
+
+/* Quantity Button Animations */
+.quantity-btn {
+  transition: all 0.2s ease;
+}
+
+.quantity-btn:hover:not(:disabled) {
+  transform: scale(1.1);
+}
+
+.quantity-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+/* Ant Design Overrides */
 .ant-layout-header {
   padding: 0 50px;
   height: 80px;
   line-height: 80px;
+}
+
+.ant-btn-primary {
+  background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+  border: none;
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
+}
+
+.ant-btn-primary:hover {
+  background: linear-gradient(135deg, #0d9488 0%, #115e59 100%);
+  box-shadow: 0 6px 16px rgba(13, 148, 136, 0.4);
+}
+
+.ant-badge-count {
+  background: #f97316;
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.4);
+}
+
+/* Smooth Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f0fdfa;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #14b8a6;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #0d9488;
 }
 
 .container {
