@@ -5,6 +5,7 @@ import { Drawer, Button, Typography, Empty } from 'antd';
 import { ShoppingCartOutlined, DeleteOutlined, PlusOutlined, MinusOutlined } from '@ant-design/icons';
 import { useCart } from '@/modules/cart/context/CartContext';
 import { formatCurrency, getProductDisplay } from '@/shared/utils';
+import { CartItem } from '../types';
 
 const { Title, Text } = Typography;
 
@@ -96,7 +97,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, onCheck
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {items.map((item) => {
+            {items.map((item: CartItem) => {
               const display = getProductDisplay(item.product.color);
               
               return (
@@ -111,7 +112,6 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, onCheck
                   }}
                 >
                   <div style={{ display: 'flex', gap: '12px' }}>
-                    {/* Product Icon with Color Background */}
                     <div style={{
                       width: '80px',
                       height: '80px',
@@ -127,7 +127,6 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, onCheck
                       {display.icon}
                     </div>
 
-                    {/* Product Info */}
                     <div style={{ flex: 1 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '8px' }}>
                         <div>
@@ -147,7 +146,6 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, onCheck
                         />
                       </div>
 
-                      {/* Quantity Controls */}
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div
                           style={{

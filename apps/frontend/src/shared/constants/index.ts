@@ -1,14 +1,3 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-
-export const API_ENDPOINTS = {
-  products: `${API_BASE_URL}/api/products`,
-  orders: `${API_BASE_URL}/api/orders`,
-  redSetAvailability: (productId: number) =>
-    `${API_BASE_URL}/api/orders/red-set/${productId}/availability`,
-  cancelRedSetReservation: (productId: number) =>
-    `${API_BASE_URL}/v1/api/orders/red-set/${productId}/reservation`,
-} as const;
-
 export const PRODUCT_COLORS = {
   RED: 'red',
   GREEN: 'green',

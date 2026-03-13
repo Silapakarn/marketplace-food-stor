@@ -1,10 +1,11 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { apiClient } from '@/shared/services/api-client';
+import { productService } from '../services';
 
-export const useProducts = () =>
-  useQuery({
+export const useProducts = () => {
+  return useQuery({
     queryKey: ['products'],
-    queryFn: () => apiClient.getProducts(),
+    queryFn: () => productService.getProducts(),
   });
+};

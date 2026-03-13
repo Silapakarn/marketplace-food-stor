@@ -10,13 +10,13 @@ import { useRedSetAvailability } from '@/modules/product/hooks/useRedSetAvailabi
 import { MemberCardModal } from '@/modules/order/components/MemberCardModal';
 import { OrderSummary } from '@/modules/order/components/OrderSummary';
 import { formatCurrency, isRedSet, getRemainingTime, getProductDisplay } from '@/shared/utils';
-import type { CartItem, CreateOrderRequest } from '@/shared/types';
+import { CreateOrderRequest, OrderResponse } from '@/modules/order/types';
+import { CartItem } from '@/modules/cart/types';
 
 const { Content } = Layout;
 const { Title, Text } = Typography;
 
 export default function OrderPage() {
-
   const router = useRouter();
   const { items, clearCart } = useCart();
   const { createOrder, orderResponse, loading, error } = useCreateOrder();
@@ -54,7 +54,7 @@ export default function OrderPage() {
 
     try {
       const orderData: CreateOrderRequest = {
-        items: items.map(item => ({
+        items: items.map((item: CartItem) => ({
           productId: item.product.id,
           quantity: item.quantity,
         })),
@@ -62,11 +62,17 @@ export default function OrderPage() {
       };
 
       setSavedCartItems(items);
-      await createOrder(orderData);
+      
+      const result = await createOrder(orderData);
+      
       setOrderSuccess(true);
       clearCart();
     } catch (err) {
-      console.error('Order creation failed:', err);
+      Modal.error({
+        title: 'Order Failed',
+        content: `Failed to create order: ${err instanceof Error ? err.message : 'Unknown error'}`,
+        okText: 'Try Again',
+      });
     }
   };
 
@@ -114,8 +120,7 @@ export default function OrderPage() {
                 Order Items
               </Title>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {orderResponse.items.map((item, index) => {
-                  // Find the original product from the cart to get the color
+                {orderResponse.items.map((item: OrderResponse['items'][0], index: number) => {
                   const originalProduct = savedCartItems.find(cartItem => cartItem.product.name === item.productName)?.product;
                   const display = getProductDisplay(originalProduct?.color || 'orange');
                   
@@ -225,45 +230,102 @@ export default function OrderPage() {
 
       <Content style={{ padding: '40px 24px' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          {redSetItem && availability && !availability.available && (
-            <Card
-              style={{
-                borderRadius: '16px',
-                border: '2px solid #fbbf24',
-                background: 'linear-gradient(135deg, #fef3c7, #fde68a)',
-                marginBottom: '24px',
-                boxShadow: '0 4px 12px rgba(251, 191, 36, 0.2)',
-              }}
-            >
-              <Space direction="vertical" size="small" style={{ width: '100%' }}>
-                <Space>
-                  <span style={{ fontSize: '24px' }}>⚠️</span>
-                  <Text strong style={{ fontSize: '16px', color: '#92400e' }}>
-                    Red Set Currently Unavailable
-                  </Text>
-                </Space>
-                <Text style={{ color: '#78350f' }}>{availability.message}</Text>
-                {availability.expiresAt && (
-                  <Text style={{ color: '#78350f', fontSize: '13px' }}>
-                    Available in: <Text strong style={{ color: '#92400e' }}>{getRemainingTime(availability.expiresAt)}</Text>
-                  </Text>
-                )}
-                <Button
-                  type="primary"
-                  size="small"
-                  onClick={() => refetch()}
-                  style={{
-                    background: '#f59e0b',
-                    border: 'none',
-                    marginTop: '8px',
-                  }}
-                >
-                  Check Again
-                </Button>
-              </Space>
-            </Card>
+         {/* Red Set availability check */}
+{redSetItem && (
+  <>
+    {checkingAvailability ? (
+      <Card
+        style={{
+          borderRadius: '16px',
+          border: '2px solid #14b8a6',
+          background: 'linear-gradient(135deg, #f0fdfa, #e0f2f1)',
+          marginBottom: '24px',
+          boxShadow: '0 4px 12px rgba(13, 148, 136, 0.2)',
+        }}
+      >
+        <Space direction="vertical" size="small" style={{ width: '100%' }}>
+          <Space>
+            <span style={{ fontSize: '24px' }}>🔍</span>
+            <Text strong style={{ fontSize: '16px', color: '#115e59' }}>
+              Checking Red Set Availability...
+            </Text>
+          </Space>
+          <Text style={{ color: '#0d9488' }}>
+            Please wait while we verify Red Set availability for your order.
+          </Text>
+        </Space>
+      </Card>
+    ) : availability && !availability.available ? (
+      <Card
+        style={{
+          borderRadius: '16px',
+          border: '2px solid #fbbf24',
+          background: 'linear-gradient(135deg, #fef3c7, #fde68a)',
+          marginBottom: '24px',
+          boxShadow: '0 4px 12px rgba(251, 191, 36, 0.2)',
+        }}
+      >
+        <Space direction="vertical" size="small" style={{ width: '100%' }}>
+          <Space>
+            <span style={{ fontSize: '24px' }}>⚠️</span>
+            <Text strong style={{ fontSize: '16px', color: '#92400e' }}>
+              Red Set Currently Unavailable
+            </Text>
+          </Space>
+
+          <Text style={{ color: '#78350f' }}>
+            {availability.message}
+          </Text>
+
+          {availability.expiresAt && (
+            <Text style={{ color: '#78350f', fontSize: '13px' }}>
+              Available in:{' '}
+              <Text strong style={{ color: '#92400e' }}>
+                {getRemainingTime(availability.expiresAt)}
+              </Text>
+            </Text>
           )}
 
+          <Button
+            type="primary"
+            size="small"
+            onClick={() => refetch()}
+            style={{
+              background: '#f59e0b',
+              border: 'none',
+              marginTop: '8px',
+            }}
+          >
+            Check Again
+          </Button>
+        </Space>
+      </Card>
+    ) : availability && availability.available ? (
+      <Card
+        style={{
+          borderRadius: '16px',
+          border: '2px solid #10b981',
+          background: 'linear-gradient(135deg, #d1fae5, #a7f3d0)',
+          marginBottom: '24px',
+          boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)',
+        }}
+      >
+        <Space direction="vertical" size="small" style={{ width: '100%' }}>
+          <Space>
+            <span style={{ fontSize: '24px' }}>✅</span>
+            <Text strong style={{ fontSize: '16px', color: '#065f46' }}>
+              Red Set Available
+            </Text>
+          </Space>
+
+          <Text style={{ color: '#047857' }}>
+            Great! Red Set is available and ready for ordering.
+          </Text>
+        </Space>
+      </Card>
+    ) : null}
+  </>
+)}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: '24px' }}>
             <div>
               <Card
@@ -290,7 +352,7 @@ export default function OrderPage() {
                     <Empty description="No items in cart" />
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                      {items.map((item) => {
+                      {items.map((item: CartItem) => {
                         const display = getProductDisplay(item.product.color);
                         
                         return (
@@ -407,7 +469,7 @@ export default function OrderPage() {
                 type="primary"
                 size="large"
                 block
-                loading={loading || checkingAvailability}
+                loading={loading}
                 disabled={items.length === 0 || Boolean(redSetItem && availability && !availability.available)}
                 onClick={handlePlaceOrder}
                 style={{
@@ -425,7 +487,9 @@ export default function OrderPage() {
 
               {error && (
                 <Card style={{ borderRadius: '12px', border: '1px solid #fca5a5', background: '#fef2f2' }}>
-                  <Text style={{ color: '#dc2626', fontSize: '14px' }}>{error}</Text>
+                  <Text style={{ color: '#dc2626', fontSize: '14px' }}>
+                    {error instanceof Error ? error.message : 'An error occurred'}
+                  </Text>
                 </Card>
               )}
 

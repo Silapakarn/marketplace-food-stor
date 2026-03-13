@@ -1,5 +1,5 @@
 import { CURRENCY_SYMBOL } from '../constants';
-import type { Product } from '../types';
+import type { Product } from '@/modules/product/types';
 
 export const formatCurrency = (amount: number, currency: string = CURRENCY_SYMBOL): string => {
   const hasDecimals = amount % 1 !== 0;

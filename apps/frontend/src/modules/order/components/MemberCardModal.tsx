@@ -40,7 +40,6 @@ export const MemberCardModal: React.FC<MemberCardModalProps> = ({ isOpen, onClos
       }}
     >
       <div style={{ textAlign: 'center', padding: '20px 0' }}>
-        {/* Icon */}
         <div style={{
           width: '80px',
           height: '80px',
@@ -55,7 +54,6 @@ export const MemberCardModal: React.FC<MemberCardModalProps> = ({ isOpen, onClos
           <GiftOutlined style={{ fontSize: '40px', color: 'white' }} />
         </div>
 
-        {/* Title */}
         <Title level={3} style={{ color: '#115e59', marginBottom: '8px' }}>
           Member Card Discount
         </Title>
@@ -63,7 +61,6 @@ export const MemberCardModal: React.FC<MemberCardModalProps> = ({ isOpen, onClos
           Get an extra 10% discount on your total!
         </Text>
 
-        {/* Discount Badge */}
         <div style={{
           background: 'linear-gradient(135deg, #fef3c7, #fde68a)',
           border: '2px solid #fbbf24',
@@ -96,7 +93,6 @@ export const MemberCardModal: React.FC<MemberCardModalProps> = ({ isOpen, onClos
             }}
           />
 
-          {/* Buttons */}
           <Space direction="vertical" size="middle" style={{ width: '100%' }}>
             <Button
               type="primary"

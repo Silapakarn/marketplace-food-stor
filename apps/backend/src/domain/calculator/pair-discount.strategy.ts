@@ -7,7 +7,6 @@ export class PairDiscountStrategy implements IDiscountStrategy {
     const itemsWithDiscount: DiscountResult['itemsWithDiscount'] = [];
     let totalDiscount = 0;
 
-    // Single pass through items - O(n)
     for (const item of items) {
       const itemResult = item.product.canHavePairDiscount()
         ? this.calculatePairDiscountForItem(item)
@@ -33,7 +32,6 @@ export class PairDiscountStrategy implements IDiscountStrategy {
 
     const remaining = item.quantity % 2;
     
-    // Calculate once, use multiple times
     const pairPrice = unitPrice * 2;
     const discountPerPair = pairPrice * this.PAIR_DISCOUNT_RATE;
     const totalPairDiscount = discountPerPair * pairs;

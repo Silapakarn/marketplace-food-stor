@@ -17,17 +17,16 @@ export default function HomePage() {
   const [cartDrawerOpen, setCartDrawerOpen] = useState(false);
 
   const handleBuyNow = () => {
-    router.push('/order');
+    router.push('/public/order');
   };
 
   const handleCheckout = () => {
     setCartDrawerOpen(false);
-    router.push('/order');
+    router.push('/public/order');
   };
 
   return (
     <Layout style={{ minHeight: '100vh', background: 'linear-gradient(to bottom, #ffffff 0%, #f0fdfa 100%)' }}>
-      {/* Header - Gromuse Style */}
       <Header
         style={{
           position: 'sticky',
@@ -69,7 +68,6 @@ export default function HomePage() {
           </Space>
         </Space>
 
-        {/* Center: Search Bar */}
         <div style={{ flex: 1, maxWidth: '600px', margin: '0 32px' }}>
           <Input
             size="large"

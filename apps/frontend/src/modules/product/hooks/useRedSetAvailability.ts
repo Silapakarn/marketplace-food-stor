@@ -1,14 +1,19 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { apiClient } from '@/shared/services/api-client';
+import { productService } from '../services';
 
 export const useRedSetAvailability = (productId: number | null) => {
-  const { data: availability = null, isFetching, refetch } = useQuery({
+  const query = useQuery({
     queryKey: ['redSetAvailability', productId],
-    queryFn: () => apiClient.checkRedSetAvailability(productId!),
+    queryFn: () => productService.checkRedSetAvailability(productId!),
     enabled: !!productId,
   });
 
-  return { availability, loading: isFetching, refetch };
+  return {
+    availability: query.data,
+    loading: query.isPending,
+    error: query.error,
+    refetch: query.refetch,
+  };
 };

@@ -1,19 +1,19 @@
 'use client';
 
 import { useMutation } from '@tanstack/react-query';
-import { apiClient } from '@/shared/services/api-client';
-import type { CreateOrderRequest } from '@/shared/types';
+import { orderService } from '../services';
+import type { CreateOrderRequest, OrderResponse } from '../types';
 
 export const useCreateOrder = () => {
-  const { mutateAsync: createOrder, data: orderResponse = null, isPending: loading, error, reset } = useMutation({
-    mutationFn: (orderData: CreateOrderRequest) => apiClient.createOrder(orderData),
+  const mutation = useMutation({
+    mutationFn: (orderData: CreateOrderRequest) => orderService.createOrder(orderData),
   });
 
   return {
-    createOrder,
-    orderResponse,
-    loading,
-    error: error instanceof Error ? error.message : null,
-    reset,
+    createOrder: mutation.mutateAsync,
+    orderResponse: mutation.data,
+    loading: mutation.isPending,
+    error: mutation.error,
+    reset: mutation.reset,
   };
 };

@@ -1,87 +1,31 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, Button, Tag, Typography, Image } from 'antd';
+import { Card, Button, Tag, Typography } from 'antd';
 import { PlusOutlined, MinusOutlined, ShoppingCartOutlined } from '@ant-design/icons';
-import { useCart } from '@/modules/cart/context/CartContext';
-import { formatCurrency, isRedSet } from '@/shared/utils';
-import type { Product } from '@/shared/types';
+import { formatCurrency, getProductDisplay, isRedSet } from '@/shared/utils';
+import type { Product } from '../types';
 
 const { Text } = Typography;
 
 interface ProductCardProps {
   product: Product;
+  quantity?: number;
+  onIncrement?: () => void;
+  onDecrement?: () => void;
+  onAddToCart?: () => void;
   onBuyNow?: (product: Product) => void;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ product, onBuyNow }) => {
-  const { addItem, updateQuantity, getItemQuantity } = useCart();
-  const quantity = getItemQuantity(product.id);
+export const ProductCard: React.FC<ProductCardProps> = ({ 
+  product, 
+  quantity = 0,
+  onIncrement,
+  onDecrement,
+  onAddToCart,
+  onBuyNow 
+}) => {
   const [isHovered, setIsHovered] = useState(false);
-
-  const handleIncrement = () => {
-    if (quantity === 0) {
-      addItem(product, 1);
-    } else {
-      updateQuantity(product.id, quantity + 1);
-    }
-  };
-
-  const handleDecrement = () => {
-    if (quantity > 0) {
-      updateQuantity(product.id, quantity - 1);
-    }
-  };
-
-  const handleAddToCart = () => {
-    if (quantity === 0) {
-      addItem(product, 1);
-    }
-  };
-
-  // Get icon and gradient based on product color
-  const getProductDisplay = (color: string) => {
-    const displays: Record<string, { icon: string; gradient: string; iconBg: string }> = {
-      red: { 
-        icon: '🍅', 
-        gradient: 'linear-gradient(to bottom, #fee2e2, #ffffff)',
-        iconBg: 'linear-gradient(135deg, #fecaca, #fca5a5)'
-      },
-      green: { 
-        icon: '🥬', 
-        gradient: 'linear-gradient(to bottom, #dcfce7, #ffffff)',
-        iconBg: 'linear-gradient(135deg, #bbf7d0, #86efac)'
-      },
-      blue: { 
-        icon: '🫐', 
-        gradient: 'linear-gradient(to bottom, #dbeafe, #ffffff)',
-        iconBg: 'linear-gradient(135deg, #bfdbfe, #93c5fd)'
-      },
-      yellow: { 
-        icon: '🌽', 
-        gradient: 'linear-gradient(to bottom, #fef9c3, #ffffff)',
-        iconBg: 'linear-gradient(135deg, #fef08a, #fde047)'
-      },
-      pink: { 
-        icon: '🍓', 
-        gradient: 'linear-gradient(to bottom, #fce7f3, #ffffff)',
-        iconBg: 'linear-gradient(135deg, #fbcfe8, #f9a8d4)'
-      },
-      purple: { 
-        icon: '🍇', 
-        gradient: 'linear-gradient(to bottom, #f3e8ff, #ffffff)',
-        iconBg: 'linear-gradient(135deg, #e9d5ff, #d8b4fe)'
-      },
-      orange: { 
-        icon: '🥕', 
-        gradient: 'linear-gradient(to bottom, #ffedd5, #ffffff)',
-        iconBg: 'linear-gradient(135deg, #fed7aa, #fdba74)'
-      },
-    };
-    
-    return displays[color.toLowerCase()] || displays.green;
-  };
-
   const display = getProductDisplay(product.color);
 
   return (
@@ -110,7 +54,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onBuyNow }) =
           alignItems: 'center',
           justifyContent: 'center',
         }}>
-          {/* Product Icon with Color Background */}
           <div style={{
             width: '180px',
             height: '180px',
@@ -187,105 +130,80 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onBuyNow }) =
         </div>
       }
     >
-      {/* Product Name & Category */}
-      <div style={{ marginBottom: '12px', textAlign: 'center' }}>
-        <Text strong style={{ fontSize: '18px', color: '#115e59', display: 'block', marginBottom: '4px' }}>
+      <div style={{ marginBottom: '16px' }}>
+        <Text strong style={{ fontSize: '18px', color: '#115e59', display: 'block', marginBottom: '8px' }}>
           {product.name}
         </Text>
-        <Text type="secondary" style={{ fontSize: '13px', color: '#6b7280' }}>
-          (Local shop)
-        </Text>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+          <Text strong style={{ fontSize: '24px', color: '#0d9488' }}>
+            {formatCurrency(product.price)}
+          </Text>
+          <Text style={{ fontSize: '14px', color: '#9ca3af' }}>
+            / piece
+          </Text>
+        </div>
       </div>
 
-      {/* Price */}
-      <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-        <Text strong style={{ 
-          fontSize: '32px', 
-          color: '#0f172a',
-          fontWeight: 700,
-          letterSpacing: '-0.5px',
-        }}>
-          {formatCurrency(product.price).replace('THB', '').trim()}
-        </Text>
-        <Text type="secondary" style={{ fontSize: '18px', color: '#64748b', marginLeft: '2px' }}>
-          $
-        </Text>
-      </div>
-
-      {/* Quantity Controls or Add Button */}
-      {quantity > 0 ? (
+      {quantity === 0 ? (
+        <Button
+          type="primary"
+          size="large"
+          block
+          icon={<ShoppingCartOutlined />}
+          onClick={onAddToCart}
+          style={{
+            height: '48px',
+            borderRadius: '12px',
+            fontSize: '16px',
+            fontWeight: 600,
+            background: 'linear-gradient(135deg, #14b8a6, #0d9488)',
+            border: 'none',
+            boxShadow: '0 4px 12px rgba(13, 148, 136, 0.3)',
+          }}
+        >
+          Add to Cart
+        </Button>
+      ) : (
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
+            gap: '12px',
             background: 'linear-gradient(135deg, #d1fae5, #a7f3d0)',
-            borderRadius: '16px',
-            padding: '8px 16px',
-            height: '56px',
+            borderRadius: '12px',
+            padding: '8px 12px',
+            height: '48px',
           }}
         >
           <Button
             type="text"
             shape="circle"
-            size="large"
-            icon={<MinusOutlined style={{ fontSize: '18px', color: '#115e59', fontWeight: 'bold' }} />}
-            onClick={handleDecrement}
+            icon={<MinusOutlined style={{ fontSize: '14px', color: '#115e59' }} />}
+            onClick={onDecrement}
             style={{
-              width: '40px',
-              height: '40px',
+              width: '36px',
+              height: '36px',
               border: '2px solid #115e59',
-              background: 'transparent',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              background: 'white',
             }}
-            className="quantity-btn"
           />
-          
-          <Text strong style={{ fontSize: '24px', color: '#115e59', minWidth: '40px', textAlign: 'center' }}>
+          <Text strong style={{ fontSize: '20px', color: '#115e59' }}>
             {quantity}
           </Text>
-          
           <Button
             type="text"
             shape="circle"
-            size="large"
-            icon={<PlusOutlined style={{ fontSize: '18px', color: '#115e59', fontWeight: 'bold' }} />}
-            onClick={handleIncrement}
+            icon={<PlusOutlined style={{ fontSize: '14px', color: '#115e59' }} />}
+            onClick={onIncrement}
             style={{
-              width: '40px',
-              height: '40px',
+              width: '36px',
+              height: '36px',
               border: '2px solid #115e59',
-              background: 'transparent',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              background: 'white',
             }}
-            className="quantity-btn"
           />
         </div>
-      ) : (
-        <Button
-          type="text"
-          size="large"
-          block
-          icon={<PlusOutlined style={{ fontSize: '20px', fontWeight: 'bold' }} />}
-          onClick={handleAddToCart}
-          style={{
-            height: '56px',
-            borderRadius: '16px',
-            background: '#f3f4f6',
-            border: 'none',
-            color: '#6b7280',
-            fontSize: '18px',
-            fontWeight: 600,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-          className="quantity-btn"
-        />
       )}
     </Card>
   );

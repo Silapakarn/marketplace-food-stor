@@ -1,19 +1,18 @@
-import { API_ENDPOINTS } from '@/shared/constants';
-import type { 
-  ApiResponse, 
-  Product, 
-  CreateOrderRequest, 
-  OrderResponse,
-  RedSetAvailability 
-} from '@/shared/types';
+import type { ApiResponse } from '@/shared/types';
 
 class ApiClient {
-  private async request<T>(
-    url: string,
+  private baseUrl: string;
+
+  constructor() {
+    this.baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+  }
+
+  async call<T>(
+    endpoint: string,
     options?: RequestInit
-  ): Promise<ApiResponse<T>> {
+  ): Promise<T> {
     try {
-      const response = await fetch(url, {
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
         ...options,
         headers: {
           'Content-Type': 'application/json',
@@ -28,49 +27,35 @@ class ApiClient {
         throw new Error(error.message || `HTTP ${response.status}: ${response.statusText}`);
       }
 
-      return response.json();
+      const result: ApiResponse<T> = await response.json();
+      return result.data;
     } catch (error) {
       console.error('API Error:', error);
       throw error;
     }
   }
 
-  // Product APIs
-  async getProducts(): Promise<Product[]> {
-    const response = await this.request<Product[]>(API_ENDPOINTS.products);
-    return response.data;
+  async get<T>(endpoint: string): Promise<T> {
+    return this.call<T>(endpoint, { method: 'GET' });
   }
 
-  async getProductById(id: number): Promise<Product> {
-    const response = await this.request<Product>(
-      `${API_ENDPOINTS.products}/${id}`
-    );
-    return response.data;
-  }
 
-  // Order APIs
-  async createOrder(data: CreateOrderRequest): Promise<OrderResponse> {
-    const response = await this.request<OrderResponse>(API_ENDPOINTS.orders, {
+  async post<T>(endpoint: string, data?: unknown): Promise<T> {
+    return this.call<T>(endpoint, {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: data ? JSON.stringify(data) : undefined,
     });
-    return response.data;
   }
 
-  // Red Set Availability APIs
-  async checkRedSetAvailability(productId: number): Promise<RedSetAvailability> {
-    const response = await this.request<RedSetAvailability>(
-      API_ENDPOINTS.redSetAvailability(productId)
-    );
-    return response.data;
+  async put<T>(endpoint: string, data?: unknown): Promise<T> {
+    return this.call<T>(endpoint, {
+      method: 'PUT',
+      body: data ? JSON.stringify(data) : undefined,
+    });
   }
 
-  async cancelRedSetReservation(productId: number): Promise<boolean> {
-    const response = await this.request<{ released: boolean }>(
-      API_ENDPOINTS.cancelRedSetReservation(productId),
-      { method: 'DELETE' }
-    );
-    return response.data.released;
+  async delete<T>(endpoint: string): Promise<T> {
+    return this.call<T>(endpoint, { method: 'DELETE' });
   }
 }
 

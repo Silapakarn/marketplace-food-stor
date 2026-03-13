@@ -2,9 +2,9 @@
 
 import React from 'react';
 import { Skeleton } from 'antd';
-import { ProductCard } from './ProductCard';
+import { ProductCardContainer } from './ProductCardContainer';
 import { useProducts } from '../hooks/useProducts';
-import type { Product } from '@/shared/types';
+import type { Product } from '../types';
 
 interface ProductListProps {
   onBuyNow?: (product: Product) => void;
@@ -52,7 +52,7 @@ export const ProductList: React.FC<ProductListProps> = ({ onBuyNow }) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 items-stretch">
       {products.map((product) => (
-        <ProductCard key={product.id} product={product} onBuyNow={onBuyNow} />
+        <ProductCardContainer key={product.id} product={product} />
       ))}
     </div>
   );

@@ -42,22 +42,18 @@ export class CalculatorService {
   private readonly MEMBER_DISCOUNT_RATE = 0.10;
   
   calculate(input: CalculateOrderInput): CalculationResult {
-    // Calculate total before discount in single pass - O(n)
     let totalBeforeDiscount = 0;
     for (const item of input.items) {
       totalBeforeDiscount += item.product.getPriceAsNumber() * item.quantity;
     }
     totalBeforeDiscount = this.roundToTwo(totalBeforeDiscount);
 
-    // Get pair discount results - O(n)
     const pairDiscountResult = this.pairDiscountStrategy.calculate(input.items);
 
-    // Build product name to item map for O(1) lookup - O(n)
     const productMap = new Map(
       input.items.map(item => [item.product.name, item])
     );
 
-    // Add detailed pair breakdown - O(n) instead of O(n²)
     const itemsWithDetailedBreakdown = pairDiscountResult.itemsWithDiscount.map(item => {
       const originalItem = productMap.get(item.productName);
       

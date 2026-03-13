@@ -1,7 +1,9 @@
 'use client';
 
 import React, { createContext, useContext, useState, useCallback, useMemo, ReactNode } from 'react';
-import type { Product, CartItem } from '@/shared/types';
+import { CartItem } from '../types';
+import { Product } from '../../product/types';
+import { cartService } from '../services';
 
 interface CartContextType {
   items: CartItem[];
@@ -18,44 +20,26 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [items, setItems] = useState<CartItem[]>([]);
 
-  const totalItems = useMemo(() => items.reduce((sum, item) => sum + item.quantity, 0), [items]);
+  const totalItems = useMemo(() => cartService.calculateTotalItems(items), [items]);
 
   const addItem = useCallback((product: Product, quantity: number = 1) => {
-    setItems((prevItems) => {
-      const existingItem = prevItems.find((item) => item.product.id === product.id);
-      if (existingItem) {
-        return prevItems.map((item) =>
-          item.product.id === product.id
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
-        );
-      }
-      return [...prevItems, { product, quantity }];
-    });
+    setItems((prevItems) => cartService.addItem(prevItems, product, quantity));
   }, []);
 
   const removeItem = useCallback((productId: number) => {
-    setItems((prevItems) => prevItems.filter((item) => item.product.id !== productId));
+    setItems((prevItems) => cartService.removeItem(prevItems, productId));
   }, []);
 
   const updateQuantity = useCallback((productId: number, quantity: number) => {
-    if (quantity <= 0) {
-      removeItem(productId);
-      return;
-    }
-    setItems((prevItems) =>
-      prevItems.map((item) =>
-        item.product.id === productId ? { ...item, quantity } : item
-      )
-    );
-  }, [removeItem]);
+    setItems((prevItems) => cartService.updateQuantity(prevItems, productId, quantity));
+  }, []);
 
   const clearCart = useCallback(() => {
     setItems([]);
   }, []);
 
   const getItemQuantity = useCallback((productId: number) => {
-    const item = items.find((item) => item.product.id === productId);
+    const item = cartService.findItemById(items, productId);
     return item?.quantity || 0;
   }, [items]);
 

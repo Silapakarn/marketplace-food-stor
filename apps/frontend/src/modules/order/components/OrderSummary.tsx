@@ -1,15 +1,10 @@
-/**
- * UI Layer - Order Summary Component
- * Displays calculation breakdown with discounts
- */
-
 'use client';
 
 import React from 'react';
 import { Card, Space, Divider, Typography, Tag } from 'antd';
 import { GiftOutlined, CreditCardOutlined, TrophyOutlined } from '@ant-design/icons';
 import { formatCurrency } from '@/shared/utils';
-import type { OrderCalculation } from '@/shared/types';
+import { OrderCalculation } from '../types';
 
 const { Text, Title } = Typography;
 
@@ -35,7 +30,6 @@ export const OrderSummary: React.FC<OrderSummaryProps> = ({ calculation, memberC
         Order Summary
       </Title>
 
-      {/* Total Before Discount */}
       <Space direction="vertical" size="middle" style={{ width: '100%' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Text style={{ fontSize: '16px', color: '#6b7280' }}>Subtotal:</Text>
@@ -44,7 +38,6 @@ export const OrderSummary: React.FC<OrderSummaryProps> = ({ calculation, memberC
           </Text>
         </div>
 
-        {/* Pair Discount */}
         {calculation.pairDiscount > 0 && (
           <>
             <Divider style={{ margin: 0, borderColor: '#e0f2f1' }} />
@@ -68,11 +61,10 @@ export const OrderSummary: React.FC<OrderSummaryProps> = ({ calculation, memberC
                   </Text>
                 </div>
 
-                {/* Pair Discount Breakdown */}
                 <div style={{ paddingLeft: '28px' }}>
                   {calculation.itemsWithPairDiscount
-                    .filter(item => item.discountAmount > 0)
-                    .map((item, index) => (
+                    .filter((item) => item.discountAmount > 0)
+                    .map((item: OrderCalculation['itemsWithPairDiscount'][0], index: number) => (
                       <div key={index} style={{ marginTop: '4px' }}>
                         <Text style={{ fontSize: '13px', color: '#047857' }}>
                           • {item.productName}
@@ -90,7 +82,6 @@ export const OrderSummary: React.FC<OrderSummaryProps> = ({ calculation, memberC
           </>
         )}
 
-        {/* Member Discount */}
         {calculation.memberDiscount > 0 && (
           <>
             <Divider style={{ margin: 0, borderColor: '#e0f2f1' }} />
@@ -123,7 +114,6 @@ export const OrderSummary: React.FC<OrderSummaryProps> = ({ calculation, memberC
           </>
         )}
 
-        {/* Final Total */}
         <Divider style={{ margin: 0, borderColor: '#e0f2f1' }} />
         <div
           style={{
@@ -143,7 +133,6 @@ export const OrderSummary: React.FC<OrderSummaryProps> = ({ calculation, memberC
           </div>
         </div>
 
-        {/* Savings Summary */}
         {totalSavings > 0 && (
           <Card
             style={{
