@@ -15,8 +15,8 @@ export const ProductList: React.FC<ProductListProps> = ({ onBuyNow }) => {
 
   if (isPending) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-        {Array.from({ length: 5 }).map((_, i) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {Array.from({ length: 8 }).map((_, i) => (
           <div
             key={i}
             className="bg-white overflow-hidden shadow-sm flex flex-col"
@@ -50,7 +50,7 @@ export const ProductList: React.FC<ProductListProps> = ({ onBuyNow }) => {
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 items-stretch">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 items-stretch">
       {products.map((product) => (
         <ProductCard key={product.id} product={product} onBuyNow={onBuyNow} />
       ))}

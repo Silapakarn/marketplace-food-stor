@@ -9,8 +9,8 @@ import { useCreateOrder } from '@/modules/order/hooks/useCreateOrder';
 import { useRedSetAvailability } from '@/modules/product/hooks/useRedSetAvailability';
 import { MemberCardModal } from '@/modules/order/components/MemberCardModal';
 import { OrderSummary } from '@/modules/order/components/OrderSummary';
-import { formatCurrency, isRedSet, getRemainingTime } from '@/shared/utils';
-import type { CreateOrderRequest } from '@/shared/types';
+import { formatCurrency, isRedSet, getRemainingTime, getProductDisplay } from '@/shared/utils';
+import type { CartItem, CreateOrderRequest } from '@/shared/types';
 
 const { Content } = Layout;
 const { Title, Text } = Typography;
@@ -23,6 +23,7 @@ export default function OrderPage() {
   const [showMemberModal, setShowMemberModal] = useState(false);
   const [memberCardNumber, setMemberCardNumber] = useState<string>('');
   const [orderSuccess, setOrderSuccess] = useState(false);
+  const [savedCartItems, setSavedCartItems] = useState<CartItem[]>([]);
   const redSetItem = items.find(item => isRedSet(item.product));
   const redSetId = redSetItem?.product.id || null;
   
@@ -60,6 +61,7 @@ export default function OrderPage() {
         memberCardNumber: cardNumber || undefined,
       };
 
+      setSavedCartItems(items);
       await createOrder(orderData);
       setOrderSuccess(true);
       clearCart();
@@ -112,46 +114,53 @@ export default function OrderPage() {
                 Order Items
               </Title>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {orderResponse.items.map((item, index) => (
-                  <div
-                    key={index}
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      padding: '16px',
-                      background: 'linear-gradient(135deg, #f0fdfa, #ffffff)',
-                      borderRadius: '12px',
-                      border: '1px solid #e0f2f1',
-                    }}
-                  >
-                    <Space size="middle">
-                      <div style={{
-                        width: '60px',
-                        height: '60px',
-                        borderRadius: '12px',
-                        background: 'linear-gradient(135deg, #d1fae5, #a7f3d0)',
+                {orderResponse.items.map((item, index) => {
+                  // Find the original product from the cart to get the color
+                  const originalProduct = savedCartItems.find(cartItem => cartItem.product.name === item.productName)?.product;
+                  const display = getProductDisplay(originalProduct?.color || 'orange');
+                  
+                  return (
+                    <div
+                      key={index}
+                      style={{
                         display: 'flex',
+                        justifyContent: 'space-between',
                         alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '32px',
-                      }}>
-                        🍽️
-                      </div>
-                      <div>
-                        <Text strong style={{ fontSize: '16px', color: '#115e59', display: 'block' }}>
-                          {item.productName}
-                        </Text>
-                        <Text style={{ fontSize: '14px', color: '#9ca3af' }}>
-                          {formatCurrency(item.unitPrice)} × {item.quantity}
-                        </Text>
-                      </div>
-                    </Space>
-                    <Text strong style={{ fontSize: '18px', color: '#0d9488' }}>
-                      {formatCurrency(item.subtotal)}
-                    </Text>
-                  </div>
-                ))}
+                        padding: '16px',
+                        background: 'linear-gradient(135deg, #f0fdfa, #ffffff)',
+                        borderRadius: '12px',
+                        border: '1px solid #e0f2f1',
+                      }}
+                    >
+                      <Space size="middle">
+                        <div style={{
+                          width: '60px',
+                          height: '60px',
+                          borderRadius: '12px',
+                          background: display.iconBg,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '32px',
+                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
+                        }}>
+                          {display.icon}
+                        </div>
+                        <div>
+                          <Text strong style={{ fontSize: '16px', color: '#115e59', display: 'block' }}>
+                            {item.productName}
+                          </Text>
+                          <Text style={{ fontSize: '14px', color: '#9ca3af' }}>
+                            {formatCurrency(item.unitPrice)} × {item.quantity}
+                          </Text>
+                        </div>
+                      </Space>
+                      <Text strong style={{ fontSize: '18px', color: '#0d9488' }}>
+                        {formatCurrency(item.subtotal)}
+                      </Text>
+                    </div>
+                  );
+                })}
               </div>
             </Card>
 
@@ -281,64 +290,69 @@ export default function OrderPage() {
                     <Empty description="No items in cart" />
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                      {items.map((item) => (
-                        <div
-                          key={item.product.id}
-                          style={{
-                            display: 'flex',
-                            gap: '16px',
-                            padding: '16px',
-                            background: 'linear-gradient(135deg, #f0fdfa, #ffffff)',
-                            borderRadius: '16px',
-                            border: '1px solid #e0f2f1',
-                          }}
-                        >
-                          <div style={{
-                            width: '100px',
-                            height: '100px',
-                            borderRadius: '16px',
-                            background: 'linear-gradient(135deg, #d1fae5, #a7f3d0)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '48px',
-                            flexShrink: 0,
-                          }}>
-                            🍽️
-                          </div>
+                      {items.map((item) => {
+                        const display = getProductDisplay(item.product.color);
+                        
+                        return (
+                          <div
+                            key={item.product.id}
+                            style={{
+                              display: 'flex',
+                              gap: '16px',
+                              padding: '16px',
+                              background: 'linear-gradient(135deg, #f0fdfa, #ffffff)',
+                              borderRadius: '16px',
+                              border: '1px solid #e0f2f1',
+                            }}
+                          >
+                            <div style={{
+                              width: '100px',
+                              height: '100px',
+                              borderRadius: '16px',
+                              background: display.iconBg,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '52px',
+                              flexShrink: 0,
+                              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                            }}>
+                              {display.icon}
+                            </div>
 
-                          <div style={{ flex: 1 }}>
-                            <Space direction="vertical" size="small" style={{ width: '100%' }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                                <div>
-                                  <Text strong style={{ fontSize: '18px', color: '#115e59', display: 'block' }}>
-                                    {item.product.name}
-                                  </Text>
-                                  <Text style={{ fontSize: '14px', color: '#9ca3af' }}>
-                                    {formatCurrency(item.product.price)} × {item.quantity}
+                            <div style={{ flex: 1 }}>
+                              <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                                  <div>
+                                    <Text strong style={{ fontSize: '18px', color: '#115e59', display: 'block' }}>
+                                      {item.product.name}
+                                    </Text>
+                                    <Text style={{ fontSize: '14px', color: '#9ca3af' }}>
+                                      {formatCurrency(item.product.price)} × {item.quantity}
+                                    </Text>
+                                  </div>
+                                  <Text strong style={{ fontSize: '20px', color: '#0d9488' }}>
+                                    {formatCurrency(item.product.price * item.quantity)}
                                   </Text>
                                 </div>
-                                <Text strong style={{ fontSize: '20px', color: '#0d9488' }}>
-                                  {formatCurrency(item.product.price * item.quantity)}
-                                </Text>
-                              </div>
-                              
-                              <Space size="small">
-                                {item.product.hasPairDiscount && (
-                                  <Tag style={{ background: 'linear-gradient(135deg, #14b8a6, #0d9488)', color: 'white', border: 'none' }}>
-                                    🎁 5% Pair Discount
-                                  </Tag>
-                                )}
-                                {isRedSet(item.product) && (
-                                  <Tag style={{ background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', color: '#7c2d12', border: 'none' }}>
-                                    ⚡ Limited
-                                  </Tag>
-                                )}
+                                
+                                <Space size="small">
+                                  {item.product.hasPairDiscount && (
+                                    <Tag style={{ background: 'linear-gradient(135deg, #14b8a6, #0d9488)', color: 'white', border: 'none' }}>
+                                      🎁 5% Pair Discount
+                                    </Tag>
+                                  )}
+                                  {isRedSet(item.product) && (
+                                    <Tag style={{ background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', color: '#7c2d12', border: 'none' }}>
+                                      ⚡ Limited
+                                    </Tag>
+                                  )}
+                                </Space>
                               </Space>
-                            </Space>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </Space>

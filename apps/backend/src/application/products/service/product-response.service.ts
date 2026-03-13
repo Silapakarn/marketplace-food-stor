@@ -17,17 +17,17 @@ export class ProductResponseService {
   ) {}
 
   async getFormattedProducts(): Promise<ProductDto[]> {
-    // if (this.redisClient) {
-    //   try {
-    //     const cachedProducts = await this.redisClient.get(this.CACHE_KEY);
-    //     if (cachedProducts) {
-    //       this.logger.log('Products retrieved from Redis cache');
-    //       return JSON.parse(cachedProducts);
-    //     }
-    //   } catch (error) {
-    //     this.logger.warn('Failed to get products from cache', error.message);
-    //   }
-    // }
+    if (this.redisClient) {
+      try {
+        const cachedProducts = await this.redisClient.get(this.CACHE_KEY);
+        if (cachedProducts) {
+          this.logger.log('Products retrieved from Redis cache');
+          return JSON.parse(cachedProducts);
+        }
+      } catch (error) {
+        this.logger.warn('Failed to get products from cache', error.message);
+      }
+    }
 
     const [products, defaultCurrency] = await Promise.all([
       this.getProductsUseCase.execute(),
@@ -49,18 +49,18 @@ export class ProductResponseService {
       hasPairDiscount: product.hasPairDiscount,
     }));
 
-    // if (this.redisClient) {
-    //   try {
-    //     await this.redisClient.setex(
-    //       this.CACHE_KEY, 
-    //       this.CACHE_TTL, 
-    //       JSON.stringify(formattedProducts)
-    //     );
-    //     this.logger.log('Products cached in Redis');
-    //   } catch (error) {
-    //     this.logger.warn('Failed to cache products', error.message);
-    //   }
-    // }
+    if (this.redisClient) {
+      try {
+        await this.redisClient.setex(
+          this.CACHE_KEY, 
+          this.CACHE_TTL, 
+          JSON.stringify(formattedProducts)
+        );
+        this.logger.log('Products cached in Redis');
+      } catch (error) {
+        this.logger.warn('Failed to cache products', error.message);
+      }
+    }
 
     return formattedProducts;
   }

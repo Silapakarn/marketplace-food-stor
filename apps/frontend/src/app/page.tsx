@@ -85,7 +85,6 @@ export default function HomePage() {
           />
         </div>
 
-        {/* Right: Delivery Notice + Cart + User */}
         <Space align="center" size="large">
           <div style={{ color: 'white', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ fontSize: '20px' }}>⚡</span>
@@ -127,14 +126,12 @@ export default function HomePage() {
         </Space>
       </Header>
 
-      {/* Main Content */}
-      <Content style={{ padding: '40px 32px' }}>
-        <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+      <Content style={{ padding: '40px 32px', width: '100%' }}>
+        <div style={{ maxWidth: '1600px', margin: '0 auto', width: '100%' }}>
           <ProductList onBuyNow={handleBuyNow} />
         </div>
       </Content>
 
-      {/* Cart Drawer */}
       <CartDrawer
         isOpen={cartDrawerOpen}
         onClose={() => setCartDrawerOpen(false)}

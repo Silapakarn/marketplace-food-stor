@@ -39,6 +39,51 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onBuyNow }) =
     }
   };
 
+  // Get icon and gradient based on product color
+  const getProductDisplay = (color: string) => {
+    const displays: Record<string, { icon: string; gradient: string; iconBg: string }> = {
+      red: { 
+        icon: '🍅', 
+        gradient: 'linear-gradient(to bottom, #fee2e2, #ffffff)',
+        iconBg: 'linear-gradient(135deg, #fecaca, #fca5a5)'
+      },
+      green: { 
+        icon: '🥬', 
+        gradient: 'linear-gradient(to bottom, #dcfce7, #ffffff)',
+        iconBg: 'linear-gradient(135deg, #bbf7d0, #86efac)'
+      },
+      blue: { 
+        icon: '🫐', 
+        gradient: 'linear-gradient(to bottom, #dbeafe, #ffffff)',
+        iconBg: 'linear-gradient(135deg, #bfdbfe, #93c5fd)'
+      },
+      yellow: { 
+        icon: '🌽', 
+        gradient: 'linear-gradient(to bottom, #fef9c3, #ffffff)',
+        iconBg: 'linear-gradient(135deg, #fef08a, #fde047)'
+      },
+      pink: { 
+        icon: '🍓', 
+        gradient: 'linear-gradient(to bottom, #fce7f3, #ffffff)',
+        iconBg: 'linear-gradient(135deg, #fbcfe8, #f9a8d4)'
+      },
+      purple: { 
+        icon: '🍇', 
+        gradient: 'linear-gradient(to bottom, #f3e8ff, #ffffff)',
+        iconBg: 'linear-gradient(135deg, #e9d5ff, #d8b4fe)'
+      },
+      orange: { 
+        icon: '🥕', 
+        gradient: 'linear-gradient(to bottom, #ffedd5, #ffffff)',
+        iconBg: 'linear-gradient(135deg, #fed7aa, #fdba74)'
+      },
+    };
+    
+    return displays[color.toLowerCase()] || displays.green;
+  };
+
+  const display = getProductDisplay(product.color);
+
   return (
     <Card
       hoverable
@@ -54,26 +99,32 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onBuyNow }) =
           ? '0 20px 40px rgba(13, 148, 136, 0.15)' 
           : '0 4px 12px rgba(0, 0, 0, 0.06)',
       }}
-      bodyStyle={{ padding: '20px' }}
+      styles={{ body: { padding: '20px' } }}
       cover={
         <div style={{ 
           position: 'relative', 
-          background: 'linear-gradient(to bottom, #f0fdfa, #ffffff)',
+          background: display.gradient,
           padding: '20px',
           height: '280px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
         }}>
+          {/* Product Icon with Color Background */}
           <div style={{
-            width: '100%',
-            height: '200px',
+            width: '180px',
+            height: '180px',
+            borderRadius: '50%',
+            background: display.iconBg,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: '80px',
+            fontSize: '100px',
+            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)',
+            transition: 'transform 0.3s ease',
+            transform: isHovered ? 'scale(1.05) rotate(5deg)' : 'scale(1)',
           }}>
-            🍽️
+            {display.icon}
           </div>
 
           {/* Badges */}

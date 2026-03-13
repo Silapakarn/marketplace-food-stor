@@ -4,7 +4,7 @@ import React from 'react';
 import { Drawer, Button, Typography, Empty } from 'antd';
 import { ShoppingCartOutlined, DeleteOutlined, PlusOutlined, MinusOutlined } from '@ant-design/icons';
 import { useCart } from '@/modules/cart/context/CartContext';
-import { formatCurrency } from '@/shared/utils';
+import { formatCurrency, getProductDisplay } from '@/shared/utils';
 
 const { Title, Text } = Typography;
 
@@ -96,103 +96,108 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, onCheck
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {items.map((item) => (
-              <div
-                key={item.product.id}
-                style={{
-                  background: 'white',
-                  borderRadius: '16px',
-                  padding: '16px',
-                  border: '1px solid #e5e7eb',
-                  boxShadow: '0 2px 4px rgba(0,0,0,0.04)',
-                }}
-              >
-                <div style={{ display: 'flex', gap: '12px' }}>
-                  {/* Product Image */}
-                  <div style={{
-                    width: '80px',
-                    height: '80px',
-                    borderRadius: '12px',
-                    background: 'linear-gradient(135deg, #f0fdfa, #e0f2f1)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '40px',
-                    flexShrink: 0,
-                  }}>
-                    🍽️
-                  </div>
-
-                  {/* Product Info */}
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '8px' }}>
-                      <div>
-                        <Text strong style={{ fontSize: '15px', color: '#115e59', display: 'block' }}>
-                          {item.product.name}
-                        </Text>
-                        <Text style={{ fontSize: '12px', color: '#9ca3af' }}>
-                          {formatCurrency(item.product.price)} each
-                        </Text>
-                      </div>
-                      <Button
-                        type="text"
-                        size="small"
-                        icon={<DeleteOutlined />}
-                        onClick={() => removeItem(item.product.id)}
-                        style={{ color: '#ef4444' }}
-                      />
+            {items.map((item) => {
+              const display = getProductDisplay(item.product.color);
+              
+              return (
+                <div
+                  key={item.product.id}
+                  style={{
+                    background: 'white',
+                    borderRadius: '16px',
+                    padding: '16px',
+                    border: '1px solid #e5e7eb',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.04)',
+                  }}
+                >
+                  <div style={{ display: 'flex', gap: '12px' }}>
+                    {/* Product Icon with Color Background */}
+                    <div style={{
+                      width: '80px',
+                      height: '80px',
+                      borderRadius: '12px',
+                      background: display.iconBg,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '48px',
+                      flexShrink: 0,
+                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
+                    }}>
+                      {display.icon}
                     </div>
 
-                    {/* Quantity Controls */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '12px',
-                          background: 'linear-gradient(135deg, #d1fae5, #a7f3d0)',
-                          borderRadius: '12px',
-                          padding: '6px 12px',
-                        }}
-                      >
+                    {/* Product Info */}
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '8px' }}>
+                        <div>
+                          <Text strong style={{ fontSize: '15px', color: '#115e59', display: 'block' }}>
+                            {item.product.name}
+                          </Text>
+                          <Text style={{ fontSize: '12px', color: '#9ca3af' }}>
+                            {formatCurrency(item.product.price)} each
+                          </Text>
+                        </div>
                         <Button
                           type="text"
                           size="small"
-                          shape="circle"
-                          icon={<MinusOutlined style={{ fontSize: '12px', color: '#115e59' }} />}
-                          onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                          style={{
-                            width: '28px',
-                            height: '28px',
-                            border: '2px solid #115e59',
-                            minWidth: '28px',
-                          }}
-                        />
-                        <Text strong style={{ fontSize: '16px', color: '#115e59', minWidth: '24px', textAlign: 'center' }}>
-                          {item.quantity}
-                        </Text>
-                        <Button
-                          type="text"
-                          size="small"
-                          shape="circle"
-                          icon={<PlusOutlined style={{ fontSize: '12px', color: '#115e59' }} />}
-                          onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                          style={{
-                            width: '28px',
-                            height: '28px',
-                            border: '2px solid #115e59',
-                            minWidth: '28px',
-                          }}
+                          icon={<DeleteOutlined />}
+                          onClick={() => removeItem(item.product.id)}
+                          style={{ color: '#ef4444' }}
                         />
                       </div>
-                      <Text strong style={{ fontSize: '16px', color: '#0d9488' }}>
-                        {formatCurrency(item.product.price * item.quantity)}
-                      </Text>
+
+                      {/* Quantity Controls */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px',
+                            background: 'linear-gradient(135deg, #d1fae5, #a7f3d0)',
+                            borderRadius: '12px',
+                            padding: '6px 12px',
+                          }}
+                        >
+                          <Button
+                            type="text"
+                            size="small"
+                            shape="circle"
+                            icon={<MinusOutlined style={{ fontSize: '12px', color: '#115e59' }} />}
+                            onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                            style={{
+                              width: '28px',
+                              height: '28px',
+                              border: '2px solid #115e59',
+                              minWidth: '28px',
+                            }}
+                          />
+                          <Text strong style={{ fontSize: '16px', color: '#115e59', minWidth: '24px', textAlign: 'center' }}>
+                            {item.quantity}
+                          </Text>
+                          <Button
+                            type="text"
+                            size="small"
+                            shape="circle"
+                            icon={<PlusOutlined style={{ fontSize: '12px', color: '#115e59' }} />}
+                            onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                            style={{
+                              width: '28px',
+                              height: '28px',
+                              border: '2px solid #115e59',
+                              minWidth: '28px',
+                            }}
+                          />
+                        </div>
+                        <Text strong style={{ fontSize: '16px', color: '#0d9488' }}>
+                          {formatCurrency(item.product.price * item.quantity)}
+                        </Text>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

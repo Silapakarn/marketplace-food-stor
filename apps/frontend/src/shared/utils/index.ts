@@ -45,3 +45,45 @@ export const getRemainingTime = (expiresAt: string): string => {
   const hours = Math.floor(minutes / 60);
   return hours > 0 ? `${hours}h ${minutes % 60}m` : `${minutes}m`;
 };
+
+export const getProductDisplay = (color: string): { icon: string; gradient: string; iconBg: string } => {
+  const displays: Record<string, { icon: string; gradient: string; iconBg: string }> = {
+    red: { 
+      icon: '🍅', 
+      gradient: 'linear-gradient(to bottom, #fee2e2, #ffffff)',
+      iconBg: 'linear-gradient(135deg, #fecaca, #fca5a5)'
+    },
+    green: { 
+      icon: '🥬', 
+      gradient: 'linear-gradient(to bottom, #dcfce7, #ffffff)',
+      iconBg: 'linear-gradient(135deg, #bbf7d0, #86efac)'
+    },
+    blue: { 
+      icon: '🫐', 
+      gradient: 'linear-gradient(to bottom, #dbeafe, #ffffff)',
+      iconBg: 'linear-gradient(135deg, #bfdbfe, #93c5fd)'
+    },
+    yellow: { 
+      icon: '🌽', 
+      gradient: 'linear-gradient(to bottom, #fef9c3, #ffffff)',
+      iconBg: 'linear-gradient(135deg, #fef08a, #fde047)'
+    },
+    pink: { 
+      icon: '🍓', 
+      gradient: 'linear-gradient(to bottom, #fce7f3, #ffffff)',
+      iconBg: 'linear-gradient(135deg, #fbcfe8, #f9a8d4)'
+    },
+    purple: { 
+      icon: '🍇', 
+      gradient: 'linear-gradient(to bottom, #f3e8ff, #ffffff)',
+      iconBg: 'linear-gradient(135deg, #e9d5ff, #d8b4fe)'
+    },
+    orange: { 
+      icon: '🥕', 
+      gradient: 'linear-gradient(to bottom, #ffedd5, #ffffff)',
+      iconBg: 'linear-gradient(135deg, #fed7aa, #fdba74)'
+    },
+  };
+  
+  return displays[color.toLowerCase()] || displays.green;
+};
