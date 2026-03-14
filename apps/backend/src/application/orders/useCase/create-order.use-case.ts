@@ -3,6 +3,8 @@ import { IOrderRepository } from '../../../domain/orders/order.repository.interf
 import { IProductRepository } from '../../../domain/products/product.repository.interface';
 import { CalculatorService } from '../../calculator/service/calculator.service';
 import { Order } from '../../../domain/orders/order.entity';
+import { Product } from '../../../domain/products/product.entity';
+import { roundToTwo } from '../../../shared/utils/format';
 import Redis from 'ioredis';
 
 export interface CreateOrderInput {
@@ -11,12 +13,9 @@ export interface CreateOrderInput {
     quantity: number;
   }>;
   memberCardNumber?: string;
+  itemsWithProducts?: Array<{ product: Product; quantity: number }>;
 }
 
-/**
- * Use Case: Create Order
- * Orchestrates order creation with business rules validation
- */
 @Injectable()
 export class CreateOrderUseCase {
   constructor(
@@ -27,59 +26,60 @@ export class CreateOrderUseCase {
   ) {}
 
   async execute(input: CreateOrderInput): Promise<Order> {
-    const itemsWithProducts = await Promise.all(
-      input.items.map(async (item) => {
-        const product = await this.productRepository.findById(item.productId);
-        if (!product) {
-          throw new BadRequestException(`Product with ID ${item.productId} not found`);
-        }
-        if (item.quantity <= 0) {
-          throw new BadRequestException('Quantity must be greater than 0');
-        }
-        return {
-          product,
-          quantity: item.quantity,
-        };
-      }),
-    );
+    const itemsWithProducts = input.itemsWithProducts ?? await this.fetchProducts(input.items);
 
-    // Check Red Set restriction (only one order per hour)
     await this.validateRedSetRestriction(itemsWithProducts);
 
-    // Calculate order totals with discounts
     const calculation = this.calculatorService.calculate({
       items: itemsWithProducts,
       memberCardNumber: input.memberCardNumber,
     });
 
-    // Create order in database
     const order = await this.orderRepository.create(
       {
         memberCardNumber: input.memberCardNumber,
-        items: input.items,
+        items: itemsWithProducts.map((item) => ({
+          productId: item.product.id,
+          quantity: item.quantity,
+          unitPrice: item.product.getPriceAsNumber(),
+          subtotal: roundToTwo(item.product.getPriceAsNumber() * item.quantity),
+        })),
       },
       calculation,
     );
 
-    // Track Red Set order in Redis if applicable
-    await this.trackRedSetOrder(itemsWithProducts, order.id);
+    await this.trackRedSetOrder(itemsWithProducts);
     return order;
   }
 
+  private async fetchProducts(
+    items: Array<{ productId: number; quantity: number }>,
+  ): Promise<Array<{ product: Product; quantity: number }>> {
+    return Promise.all(
+      items.map(async (item) => {
+        if (item.quantity <= 0) {
+          throw new BadRequestException('Quantity must be greater than 0');
+        }
+        const product = await this.productRepository.findById(item.productId);
+        if (!product) {
+          throw new BadRequestException(`Product with ID ${item.productId} not found`);
+        }
+        return { product, quantity: item.quantity };
+      }),
+    );
+  }
+
   private async validateRedSetRestriction(
-    items: Array<{ product: any; quantity: number }>,
+    items: Array<{ product: Product; quantity: number }>,
   ): Promise<void> {
     const hasRedSet = items.some((item) => item.product.isRedSet());
-    
+
     if (hasRedSet) {
-      const redSetKey = 'red_set:last_order';
-      const lastOrderTime = await this.redisClient.get(redSetKey);
-      
+      const lastOrderTime = await this.redisClient.get('red_set:last_order');
+
       if (lastOrderTime) {
-        const lastOrder = new Date(lastOrderTime);
-        const now = new Date();
-        const hoursDiff = (now.getTime() - lastOrder.getTime()) / (1000 * 60 * 60);
-        
+        const hoursDiff = (Date.now() - new Date(lastOrderTime).getTime()) / (1000 * 60 * 60);
+
         if (hoursDiff < 1) {
           const remainingMinutes = Math.ceil((1 - hoursDiff) * 60);
           throw new BadRequestException(
@@ -91,15 +91,12 @@ export class CreateOrderUseCase {
   }
 
   private async trackRedSetOrder(
-    items: Array<{ product: any; quantity: number }>,
-    orderId: number,
+    items: Array<{ product: Product; quantity: number }>,
   ): Promise<void> {
     const hasRedSet = items.some((item) => item.product.isRedSet());
-    
+
     if (hasRedSet) {
-      const redSetKey = 'red_set:last_order';
-      const now = new Date().toISOString();
-      await this.redisClient.setex(redSetKey, 3600, now); // 1 hour TTL
+      await this.redisClient.setex('red_set:last_order', 3600, new Date().toISOString());
     }
   }
 }

@@ -17,7 +17,6 @@ export class InventoryLockService {
   private readonly LOCK_PREFIX = 'inventory_lock:';
   private readonly USE_REDIS = process.env.USE_REDIS === 'true';
   
-  // In-memory fallback for development only
   private memoryLocks = new Map<string, { customerIdentifier: string; expiresAt: number }>();
 
   constructor() {
@@ -84,7 +83,6 @@ export class InventoryLockService {
         };
       }
 
-      // Lock exists, get TTL info
       const ttlRemaining = await this.redis!.ttl(lockKey);
       const message = this.buildLockDeniedMessage(ttlRemaining);
       
@@ -138,7 +136,6 @@ export class InventoryLockService {
 
   private async releaseRedisLock(lockKey: string, customerIdentifier: string, productId: number): Promise<boolean> {
     try {
-      // Atomic check-and-delete using Lua script - O(1)
       const luaScript = `
         local value = redis.call('GET', KEYS[1])
         if value and string.find(value, ARGV[1]) then
@@ -231,12 +228,5 @@ export class InventoryLockService {
     
     const minutesRemaining = Math.ceil(ttlRemaining / 60);
     return `Red Set is currently reserved by another customer. Please try again in ${minutesRemaining} minutes.`;
-  }
-
-  async onModuleDestroy() {
-    if (this.redis) {
-      await this.redis.quit();
-    }
-    this.memoryLocks.clear();
   }
 }

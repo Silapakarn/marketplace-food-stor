@@ -60,7 +60,6 @@ describe('CalculatorService', () => {
         items: [{ product: orangeSet, quantity: 2 }],
       });
 
-      // Orange x2 = (120 + 120) - 5% = 240 - 12 = 228
       expect(result.totalBeforeDiscount).toBe(240);
       expect(result.pairDiscount).toBe(12);
       expect(result.finalTotal).toBe(228);
@@ -83,8 +82,6 @@ describe('CalculatorService', () => {
         items: [{ product: pinkSet, quantity: 4 }],
       });
 
-      // Pink x4 = (80 + 80) - 5% + (80 + 80) - 5%
-      // = 160 - 8 + 160 - 8 = 304
       expect(result.totalBeforeDiscount).toBe(320);
       expect(result.pairDiscount).toBe(16);
       expect(result.finalTotal).toBe(304);
@@ -106,7 +103,6 @@ describe('CalculatorService', () => {
         items: [{ product: greenSet, quantity: 3 }],
       });
 
-      // Green x3 = (40 + 40) - 5% + 40 = 76 + 40 = 116
       expect(result.totalBeforeDiscount).toBe(120);
       expect(result.pairDiscount).toBe(4);
       expect(result.finalTotal).toBe(116);
@@ -120,7 +116,7 @@ describe('CalculatorService', () => {
         name: 'Red Set',
         color: 'red',
         price: new Decimal(50),
-        currencyId: 1, // THB currency
+        currencyId: 1, 
         hasPairDiscount: false,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -131,7 +127,6 @@ describe('CalculatorService', () => {
         memberCardNumber: 'MEMBER123',
       });
 
-      // Red x2 = 100, Member discount = 10% = 10
       expect(result.totalBeforeDiscount).toBe(100);
       expect(result.memberDiscount).toBe(10);
       expect(result.finalTotal).toBe(90);
@@ -145,7 +140,7 @@ describe('CalculatorService', () => {
         name: 'Orange Set',
         color: 'orange',
         price: new Decimal(120),
-        currencyId: 1, // THB currency
+        currencyId: 1,
         hasPairDiscount: true,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -156,10 +151,6 @@ describe('CalculatorService', () => {
         memberCardNumber: 'MEMBER456',
       });
 
-      // Orange x2 = 240
-      // Pair discount (5%) = 12, subtotal = 228
-      // Member discount (10% of 228) = 22.8
-      // Final = 205.2
       expect(result.totalBeforeDiscount).toBe(240);
       expect(result.pairDiscount).toBe(12);
       expect(result.memberDiscount).toBe(22.8);
@@ -172,7 +163,7 @@ describe('CalculatorService', () => {
         name: 'Orange Set',
         color: 'orange',
         price: new Decimal(120),
-        currencyId: 1, // THB currency
+        currencyId: 1, 
         hasPairDiscount: true,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -183,7 +174,7 @@ describe('CalculatorService', () => {
         name: 'Red Set',
         color: 'red',
         price: new Decimal(50),
-        currencyId: 1, // THB currency
+        currencyId: 1, 
         hasPairDiscount: false,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -194,7 +185,7 @@ describe('CalculatorService', () => {
         name: 'Green Set',
         color: 'green',
         price: new Decimal(40),
-        currencyId: 1, // THB currency
+        currencyId: 1,
         hasPairDiscount: true,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -209,13 +200,6 @@ describe('CalculatorService', () => {
         memberCardNumber: 'MEMBER789',
       });
 
-      // Orange x2 = 240 - 12 (pair discount) = 228
-      // Red x1 = 50
-      // Green x3 = 120 - 4 (pair discount for 2) = 116
-      // Total before discount = 410
-      // After pair discount = 394
-      // Member discount (10% of 394) = 39.4
-      // Final = 354.6
       expect(result.totalBeforeDiscount).toBe(410);
       expect(result.pairDiscount).toBe(16);
       expect(result.memberDiscount).toBe(39.4);

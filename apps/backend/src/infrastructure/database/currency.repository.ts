@@ -1,4 +1,5 @@
 import { Injectable, Inject } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ICurrencyRepository } from '../../domain/currencies/currency.repository.interface';
 import { Currency } from '../../domain/currencies/currency.entity';
@@ -15,24 +16,19 @@ export class CurrencyRepository implements ICurrencyRepository {
   ) {}
 
   async findAll(): Promise<Currency[]> {
-    const cacheKey = `${this.CACHE_PREFIX}all`;
-    
-    // Try to get from cache first
+    const cacheKey = `${this.CACHE_PREFIX}all`;    
     const cached = await this.redis.get(cacheKey);
     if (cached) {
       const data = JSON.parse(cached);
-      return data.map((item: any) => Currency.create(item));
+      return (data as Prisma.CurrencyGetPayload<object>[]).map((item) => Currency.create(item));
     }
 
-    // If not in cache, fetch from database
     const currencies = await this.prisma.currency.findMany({
       where: { isActive: true },
       orderBy: { code: 'asc' },
     });
 
-    const result = currencies.map((currency) => Currency.create(currency));
-    
-    // Cache the result
+    const result = currencies.map((currency) => Currency.create(currency));    
     await this.redis.setex(cacheKey, this.CACHE_TTL, JSON.stringify(currencies));
     
     return result;
@@ -41,64 +37,51 @@ export class CurrencyRepository implements ICurrencyRepository {
   async findByCode(code: string): Promise<Currency | null> {
     const cacheKey = `${this.CACHE_PREFIX}code:${code}`;
     
-    // Try cache first
     const cached = await this.redis.get(cacheKey);
     if (cached) {
       const data = JSON.parse(cached);
       return Currency.create(data);
     }
 
-    // Fetch from database
     const currency = await this.prisma.currency.findUnique({
       where: { code, isActive: true },
     });
 
     if (!currency) return null;
 
-    const result = Currency.create(currency);
-    
-    // Cache the result
+    const result = Currency.create(currency);    
     await this.redis.setex(cacheKey, this.CACHE_TTL, JSON.stringify(currency));
     
     return result;
   }
 
   async findDefault(): Promise<Currency | null> {
-    const cacheKey = `${this.CACHE_PREFIX}default`;
-    
-    // Try cache first
+    const cacheKey = `${this.CACHE_PREFIX}default`;    
     const cached = await this.redis.get(cacheKey);
     if (cached) {
       const data = JSON.parse(cached);
       return Currency.create(data);
     }
 
-    // Fetch from database
     const currency = await this.prisma.currency.findFirst({
       where: { isDefault: true, isActive: true },
     });
 
     if (!currency) return null;
 
-    const result = Currency.create(currency);
-    
-    // Cache the result
+    const result = Currency.create(currency);    
     await this.redis.setex(cacheKey, this.CACHE_TTL, JSON.stringify(currency));
     
     return result;
   }
 
   async findById(id: number): Promise<Currency | null> {
-    const cacheKey = `${this.CACHE_PREFIX}id:${id}`;
-    
-    // Try cache first
+    const cacheKey = `${this.CACHE_PREFIX}id:${id}`;    
     const cached = await this.redis.get(cacheKey);
     if (cached) {
       const data = JSON.parse(cached);
       return Currency.create(data);
     }
-
-    // Fetch from database
     const currency = await this.prisma.currency.findUnique({
       where: { id, isActive: true },
     });
@@ -107,7 +90,6 @@ export class CurrencyRepository implements ICurrencyRepository {
 
     const result = Currency.create(currency);
     
-    // Cache the result
     await this.redis.setex(cacheKey, this.CACHE_TTL, JSON.stringify(currency));
     
     return result;
@@ -125,7 +107,6 @@ export class CurrencyRepository implements ICurrencyRepository {
       },
     });
 
-    // Clear related caches
     await this.clearCaches(data.code);
     
     return Currency.create(currency);
@@ -144,7 +125,6 @@ export class CurrencyRepository implements ICurrencyRepository {
       },
     });
 
-    // Clear related caches
     await this.clearCaches(currency.code);
     
     return Currency.create(currency);

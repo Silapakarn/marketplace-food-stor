@@ -5,10 +5,6 @@ import { ProductResponseService } from '../application/products/service/product-
 import { ProductRepository } from '../infrastructure/database/product.repository';
 import { CurrenciesModule } from './currencies.module';
 
-/**
- * Products Module
- * Encapsulates all product-related functionality following DDD
- */
 @Module({
   imports: [CurrenciesModule],
   controllers: [ProductsController],

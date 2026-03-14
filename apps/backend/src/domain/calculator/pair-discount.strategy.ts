@@ -1,28 +1,24 @@
+import { PAIR_DISCOUNT_RATE } from '../../shared/constants/calculator';
 import { IDiscountStrategy, OrderItemInput, DiscountResult } from './discount-strategy.interface';
+import { roundToTwo } from '../../shared/utils/format';
 
 export class PairDiscountStrategy implements IDiscountStrategy {
-  private readonly PAIR_DISCOUNT_RATE = 0.05;
 
+  // O(n) — single pass over items
   calculate(items: OrderItemInput[]): DiscountResult {
-    const itemsWithDiscount: DiscountResult['itemsWithDiscount'] = [];
     let totalDiscount = 0;
-
-    for (const item of items) {
-      const itemResult = item.product.canHavePairDiscount()
-        ? this.calculatePairDiscountForItem(item)
+    const itemsWithDiscount = items.map(item => {
+      const result = item.product.canHavePairDiscount()
+        ? this.calculatePairDiscount(item)
         : this.calculateNoDiscount(item);
+      totalDiscount += result.discountAmount;
+      return result;
+    });
 
-      itemsWithDiscount.push(itemResult);
-      totalDiscount += itemResult.discountAmount;
-    }
-
-    return {
-      itemsWithDiscount,
-      totalDiscount: this.roundToTwo(totalDiscount),
-    };
+    return { itemsWithDiscount, totalDiscount: roundToTwo(totalDiscount) };
   }
 
-  private calculatePairDiscountForItem(item: OrderItemInput) {
+  private calculatePairDiscount(item: OrderItemInput): DiscountResult['itemsWithDiscount'][number] {
     const pairs = Math.floor(item.quantity / 2);
     const unitPrice = item.product.getPriceAsNumber();
 
@@ -31,36 +27,34 @@ export class PairDiscountStrategy implements IDiscountStrategy {
     }
 
     const remaining = item.quantity % 2;
-    
     const pairPrice = unitPrice * 2;
-    const discountPerPair = pairPrice * this.PAIR_DISCOUNT_RATE;
-    const totalPairDiscount = discountPerPair * pairs;
-    const priceAfterPairDiscount = (pairPrice - discountPerPair) * pairs;
-    const remainingPrice = remaining * unitPrice;
-    
-    const totalOriginalPrice = pairPrice * pairs + remainingPrice;
-    const totalFinalPrice = priceAfterPairDiscount + remainingPrice;
+    const discountPerPair = roundToTwo(pairPrice * PAIR_DISCOUNT_RATE);
+    const totalPairDiscount = roundToTwo(discountPerPair * pairs);
+    const originalPrice = roundToTwo(pairPrice * pairs + remaining * unitPrice);
+    const finalPrice = roundToTwo(originalPrice - totalPairDiscount);
 
     return {
       productName: item.product.name,
-      originalPrice: this.roundToTwo(totalOriginalPrice),
-      discountAmount: this.roundToTwo(totalPairDiscount),
-      finalPrice: this.roundToTwo(totalFinalPrice),
+      originalPrice,
+      discountAmount: totalPairDiscount,
+      finalPrice,
+      pairBreakdown: {
+        pairs,
+        remaining,
+        pricePerPair: roundToTwo(pairPrice),
+        discountPerPair,
+        totalPairDiscount,
+      },
     };
   }
 
-  private calculateNoDiscount(item: OrderItemInput) {
-    const totalPrice = item.product.getPriceAsNumber() * item.quantity;
-    
+  private calculateNoDiscount(item: OrderItemInput): DiscountResult['itemsWithDiscount'][number] {
+    const totalPrice = roundToTwo(item.product.getPriceAsNumber() * item.quantity);
     return {
       productName: item.product.name,
-      originalPrice: this.roundToTwo(totalPrice),
+      originalPrice: totalPrice,
       discountAmount: 0,
-      finalPrice: this.roundToTwo(totalPrice),
+      finalPrice: totalPrice,
     };
-  }
-
-  private roundToTwo(value: number): number {
-    return Math.round(value * 100) / 100;
   }
 }

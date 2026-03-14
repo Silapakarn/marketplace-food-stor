@@ -1,29 +1,8 @@
-import { IDiscountStrategy, OrderItemInput, DiscountResult } from './discount-strategy.interface';
+import { MEMBER_DISCOUNT_RATE } from '../../shared/constants/calculator';
+import { roundToTwo } from '../../shared/utils/format';
 
-
-export class MemberDiscountStrategy implements IDiscountStrategy {
-  private readonly MEMBER_DISCOUNT_RATE = 0.10;
-
-  calculate(items: OrderItemInput[]): DiscountResult {
-    let totalPrice = 0;
-    for (const item of items) {
-      totalPrice += item.product.getPriceAsNumber() * item.quantity;
-    }
-
-    const discount = this.roundToTwo(totalPrice * this.MEMBER_DISCOUNT_RATE);
-
-    return {
-      itemsWithDiscount: [{
-        productName: 'Member Card Discount',
-        originalPrice: this.roundToTwo(totalPrice),
-        discountAmount: discount,
-        finalPrice: this.roundToTwo(totalPrice - discount),
-      }],
-      totalDiscount: discount,
-    };
-  }
-
-  private roundToTwo(value: number): number {
-    return Math.round(value * 100) / 100;
+export class MemberDiscountStrategy {
+  calculate(afterPairDiscount: number): number {
+    return roundToTwo(afterPairDiscount * MEMBER_DISCOUNT_RATE);
   }
 }

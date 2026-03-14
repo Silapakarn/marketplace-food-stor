@@ -13,8 +13,4 @@ export class ProductsController {
     return this.productResponseService.getFormattedProducts();
   }
 
-  @Get(':id')
-  async getProductById(@Param('id') id: string): Promise<ProductDto | null> {
-    return this.productResponseService.getProductById(parseInt(id));
-  }
 }

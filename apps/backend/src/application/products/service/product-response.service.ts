@@ -65,50 +65,5 @@ export class ProductResponseService {
     return formattedProducts;
   }
 
-  async getProductById(id: number): Promise<ProductDto | null> {
-    const [products, defaultCurrency] = await Promise.all([
-      this.getProductsUseCase.execute(),
-      this.getDefaultCurrencyUseCase.execute(),
-    ]);
 
-    const product = products.find(p => p.id === id);
-    if (!product) return null;
-
-    const currency = defaultCurrency || { 
-      symbol: '฿', 
-      formatAmount: (amount: number) => `฿${amount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}` 
-    };
-
-    return {
-      id: product.id,
-      name: product.name,
-      price: product.getPriceAsNumber(),
-      currency: currency.symbol,
-      color: product.color,
-      imageUrl: product.imageUrl,
-      hasPairDiscount: product.hasPairDiscount,
-    };
-  }
-
-  /**
-   * Clear the products cache - useful when products are updated
-   */
-  async clearProductsCache(): Promise<void> {
-    if (this.redisClient) {
-      try {
-        await this.redisClient.del(this.CACHE_KEY);
-        this.logger.log('Products cache cleared');
-      } catch (error) {
-        this.logger.warn('Failed to clear products cache', error.message);
-      }
-    }
-  }
-
-  /**
-   * Warm up the cache by pre-loading products
-   */
-  async warmupCache(): Promise<void> {
-    this.logger.log('Warming up products cache...');
-    await this.getFormattedProducts();
-  }
 }

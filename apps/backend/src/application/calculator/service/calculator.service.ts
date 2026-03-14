@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PairDiscountStrategy } from '../../../domain/calculator/pair-discount.strategy';
 import { MemberDiscountStrategy } from '../../../domain/calculator/member-discount.strategy';
 import { Product } from '../../../domain/products/product.entity';
+import { roundToTwo } from '../../../shared/utils/format';
 
 export interface CalculateOrderInput {
   items: Array<{
@@ -39,75 +40,34 @@ export interface CalculationResult {
 @Injectable()
 export class CalculatorService {
   private readonly pairDiscountStrategy = new PairDiscountStrategy();
-  private readonly MEMBER_DISCOUNT_RATE = 0.10;
-  
+  private readonly memberDiscountStrategy = new MemberDiscountStrategy();
+
   calculate(input: CalculateOrderInput): CalculationResult {
-    let totalBeforeDiscount = 0;
-    for (const item of input.items) {
-      totalBeforeDiscount += item.product.getPriceAsNumber() * item.quantity;
-    }
-    totalBeforeDiscount = this.roundToTwo(totalBeforeDiscount);
+    const pairResult = this.pairDiscountStrategy.calculate(input.items);
 
-    const pairDiscountResult = this.pairDiscountStrategy.calculate(input.items);
-
-    const productMap = new Map(
-      input.items.map(item => [item.product.name, item])
+    const totalBeforeDiscount = roundToTwo(
+      pairResult.itemsWithDiscount.reduce((sum, item) => sum + item.originalPrice, 0),
     );
 
-    const itemsWithDetailedBreakdown = pairDiscountResult.itemsWithDiscount.map(item => {
-      const originalItem = productMap.get(item.productName);
-      
-      if (!originalItem || !originalItem.product.canHavePairDiscount()) {
-        return item;
-      }
+    const afterPairDiscount = roundToTwo(totalBeforeDiscount - pairResult.totalDiscount);
 
-      const pairs = Math.floor(originalItem.quantity / 2);
-      
-      if (pairs === 0) {
-        return item;
-      }
-
-      const remaining = originalItem.quantity % 2;
-      const unitPrice = originalItem.product.getPriceAsNumber();
-      const pairPrice = unitPrice * 2;
-      const discountPerPair = pairPrice * 0.05;
-      const totalPairDiscount = discountPerPair * pairs;
-      
-      return {
-        ...item,
-        pairBreakdown: {
-          pairs,
-          remaining,
-          pricePerPair: this.roundToTwo(pairPrice),
-          discountPerPair: this.roundToTwo(discountPerPair),
-          totalPairDiscount: this.roundToTwo(totalPairDiscount),
-        }
-      };
-    });
-
-    const afterPairDiscount = this.roundToTwo(totalBeforeDiscount - pairDiscountResult.totalDiscount);
-
-    const memberDiscount = input.memberCardNumber 
-      ? this.roundToTwo(afterPairDiscount * this.MEMBER_DISCOUNT_RATE)
+    const memberDiscount = input.memberCardNumber
+      ? this.memberDiscountStrategy.calculate(afterPairDiscount)
       : 0;
 
-    const finalTotal = this.roundToTwo(afterPairDiscount - memberDiscount);
+    const finalTotal = roundToTwo(afterPairDiscount - memberDiscount);
 
     return {
       totalBeforeDiscount,
-      pairDiscount: pairDiscountResult.totalDiscount,
+      pairDiscount: pairResult.totalDiscount,
       memberDiscount,
       finalTotal,
-      itemsWithPairDiscount: itemsWithDetailedBreakdown,
+      itemsWithPairDiscount: pairResult.itemsWithDiscount,
       breakdown: {
         subtotal: totalBeforeDiscount,
         afterPairDiscount,
         afterMemberDiscount: finalTotal,
       },
     };
-  }
-
-  private roundToTwo(value: number): number {
-    return Math.round(value * 100) / 100;
   }
 }

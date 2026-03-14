@@ -7,10 +7,6 @@ import { InventoryLockService } from '../application/orders/service/inventory-lo
 import { OrderRepository } from '../infrastructure/database/order.repository';
 import { ProductsModule } from './products.module';
 
-/**
- * Orders Module
- * Encapsulates all order-related functionality following DDD
- */
 @Module({
   imports: [ProductsModule],
   controllers: [OrdersController],

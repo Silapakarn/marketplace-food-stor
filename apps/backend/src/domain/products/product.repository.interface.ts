@@ -25,6 +25,4 @@ export interface FindAllOptions {
 export interface IProductRepository {
   findAll(options?: FindAllOptions): Promise<Product[]>;
   findById(id: number): Promise<Product | null>;
-  findByColor(color: string): Promise<Product | null>;
-  findAllWithCurrency(): Promise<Product[]>;
 }

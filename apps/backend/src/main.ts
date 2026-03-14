@@ -2,18 +2,17 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { ResponseInterceptor } from './shared/interceptors/response.interceptor';
+import { HttpExceptionFilter } from './shared/filters/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  
-  app.setGlobalPrefix('api');  
+  app.setGlobalPrefix('api');
+  app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalInterceptors(new ResponseInterceptor());
-  
   app.enableCors({
     origin: process.env.FRONTEND_URL || 'http://localhost:3000',
     credentials: true,
   });
-
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -22,15 +21,7 @@ async function bootstrap() {
     }),
   );
 
-  // Force port 3001 for backend
-  const port = 3001;
-  await app.listen(port);
-  
-  console.log(`🚀 Application is running on: http://localhost:${port}`);
-  console.log(`📋 API endpoints available at: http://localhost:${port}/api/`);
-  console.log(`📊 Database: PostgreSQL`);
-  console.log(`🔴 Redis: ${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`);
-  console.log(`🏗️  Architecture: Domain-Driven Design`);
+  await app.listen(process.env.PORT || 3001);
 }
 
 bootstrap();

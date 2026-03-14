@@ -14,13 +14,11 @@ import Redis from 'ioredis';
           return null;
         }
 
-        // Check if using cloud Redis or local Redis
         const redisUrl = configService.get('REDIS_URL');
         const redisUsername = configService.get('REDIS_USERNAME');
         const redisPassword = configService.get('REDIS_PASSWORD');
         
         if (redisUrl && redisUsername && redisPassword) {
-          // Cloud Redis configuration
           return new Redis({
             host: redisUrl,
             port: configService.get('REDIS_PORT', 6379),
@@ -34,7 +32,6 @@ import Redis from 'ioredis';
             lazyConnect: true,
           });
         } else {
-          // Local Redis fallback
           return new Redis({
             host: configService.get('REDIS_HOST', 'localhost'),
             port: configService.get('REDIS_PORT', 6379),

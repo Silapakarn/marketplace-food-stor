@@ -1,18 +1,21 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { IOrderRepository, CreateOrderData } from '../../domain/orders/order.repository.interface';
+import { CalculationResult } from '../../application/calculator/service/calculator.service';
 import { Order } from '../../domain/orders/order.entity';
 import { Decimal } from '@prisma/client/runtime/library';
 
-/**
- * Infrastructure: Order Repository Implementation
- * Handles data persistence for Order aggregate
- */
+type OrderWithItems = Prisma.OrderGetPayload<{
+  include: { orderItems: { include: { product: true } } };
+}>;
+
+
 @Injectable()
 export class OrderRepository implements IOrderRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: CreateOrderData, calculationResult: any): Promise<Order> {
+  async create(data: CreateOrderData, calculationResult: CalculationResult): Promise<Order> {
     const order = await this.prisma.order.create({
       data: {
         memberCardNumber: data.memberCardNumber || null,
@@ -21,20 +24,12 @@ export class OrderRepository implements IOrderRepository {
         memberDiscount: new Decimal(calculationResult.memberDiscount),
         finalTotal: new Decimal(calculationResult.finalTotal),
         orderItems: {
-          create: await Promise.all(
-            data.items.map(async (item) => {
-              const product = await this.prisma.product.findUnique({
-                where: { id: item.productId },
-              });
-              
-              return {
-                productId: item.productId,
-                quantity: item.quantity,
-                unitPrice: product.price,
-                subtotal: new Decimal(product.price.toNumber() * item.quantity),
-              };
-            }),
-          ),
+          create: data.items.map((item) => ({
+            productId: item.productId,
+            quantity: item.quantity,
+            unitPrice: new Decimal(item.unitPrice),
+            subtotal: new Decimal(item.subtotal),
+          })),
         },
       },
       include: {
@@ -46,7 +41,6 @@ export class OrderRepository implements IOrderRepository {
       },
     });
 
-    // Track Red Set order if applicable
     const hasRedSet = order.orderItems.some(
       (item) => item.product.color.toLowerCase() === 'red',
     );
@@ -93,7 +87,7 @@ export class OrderRepository implements IOrderRepository {
     return orders.map((order) => this.mapToOrderEntity(order));
   }
 
-  private mapToOrderEntity(data: any): Order {
+  private mapToOrderEntity(data: OrderWithItems): Order {
     return Order.create({
       id: data.id,
       memberCardNumber: data.memberCardNumber,
@@ -102,7 +96,7 @@ export class OrderRepository implements IOrderRepository {
       memberDiscount: data.memberDiscount,
       finalTotal: data.finalTotal,
       createdAt: data.createdAt,
-      items: data.orderItems.map((item: any) => ({
+      items: data.orderItems.map((item) => ({
         productId: item.productId,
         productName: item.product.name,
         quantity: item.quantity,
