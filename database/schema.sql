@@ -2,15 +2,31 @@
 
 -- Create database
 
+-- Currencies table
+CREATE TABLE IF NOT EXISTS currencies (
+    id SERIAL PRIMARY KEY,
+    code VARCHAR(3) NOT NULL UNIQUE,
+    name VARCHAR(50) NOT NULL,
+    symbol VARCHAR(10) NOT NULL,
+    exchange_rate DECIMAL(10, 4) NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    is_default BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Products table
 CREATE TABLE IF NOT EXISTS products (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     color VARCHAR(50) NOT NULL UNIQUE,
     price DECIMAL(10, 2) NOT NULL,
+    image_url VARCHAR(255),
+    currency_id INTEGER NOT NULL,
     has_pair_discount BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (currency_id) REFERENCES currencies(id)
 );
 
 -- Orders table
@@ -44,10 +60,25 @@ CREATE TABLE IF NOT EXISTS red_set_orders (
     FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
 );
 
+-- Inventory locks table (Red Set locking mechanism)
+CREATE TABLE IF NOT EXISTS inventory_locks (
+    id SERIAL PRIMARY KEY,
+    lock_key VARCHAR(100) NOT NULL UNIQUE,
+    product_id INTEGER NOT NULL,
+    customer_identifier VARCHAR(255) NOT NULL,
+    acquired_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Create indexes for performance
 CREATE INDEX idx_orders_created_at ON orders(created_at);
 CREATE INDEX idx_order_items_order_id ON order_items(order_id);
 CREATE INDEX idx_red_set_orders_ordered_at ON red_set_orders(ordered_at);
+CREATE INDEX idx_inventory_locks_product_id ON inventory_locks(product_id);
+CREATE INDEX idx_inventory_locks_expires_at ON inventory_locks(expires_at);
+CREATE INDEX idx_products_currency_id ON products(currency_id);
 
 -- Create updated_at trigger function
 CREATE OR REPLACE FUNCTION update_updated_at_column()
